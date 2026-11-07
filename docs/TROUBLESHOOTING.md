@@ -43,3 +43,12 @@ Extract the ZIP completely; do not run inside the archive. Use Windows x64 (not 
 ## No GitHub artifact
 
 Check that the workflow was pushed and a run completed successfully. Failed Windows/UI tests deliberately prevent packaging. Download artifacts from a successful Actions run, or the prerelease for a `v*` tag. A checked-in pipeline is not evidence that GitHub has run it or produced a release.
+
+
+## SHN has PS5Offset metadata
+
+Version 0.2 accepts and preserves the known plain-text PS5Offset element, original authors and genres. PS4 Section/Offset remains authoritative; PS5 metadata is never parsed as a PS4 address. Unknown operational fields still produce an error naming the field, and nested commands/duplicate address fields are rejected. A real trainer may contain other unsupported commands; do not remove them blindly. Edited JSON cannot store PS5 metadata, so retain its Studio sidecar or export SHN.
+
+## Changed code or a cave blocks automatic porting
+
+Use the Analyze panel's explanation and next steps. Load/capture old-version context and correct original section bases, then inspect ranked candidates. Changed layout requires a redesigned replacement, not merely an address choice. A possible cave requires the separate Review action; known incoming branch/RIP references, original-byte differences and invalid mappings block approval. Inspect both hook and return jump. Open the graphical editor for multi-line/dependency corrections. Manual confirmation is a user judgment, not proof that padding is unused.

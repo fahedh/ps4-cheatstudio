@@ -52,3 +52,12 @@ Review hashes a deep copy of the exact plan. Approval must bind to that hash, th
 Add a profile through the UI or `GameProfile` JSON; game support should not need code. Add protocol features only after validating source framing/status/data phases and a meaningful simulator test. Avoid guessing feature support: unknown opcodes can cause a timeout, and debug commands without attachment can receive no response. Preserve cancellation and close-on-desync behavior.
 
 Full equivalent-function detection, control-flow-graph matching, symbolic reasoning, pointer-chain discovery and automatic arbitrary external-reference relocation are future work. The current engine explicitly requires manual verification for those cases; it does not substitute a fabricated confidence result.
+
+
+## 0.2 audit modules
+
+`InstructionEvidence.cs` aligns instruction shapes with LCS, compares register/memory/immediate operands and internal branch destinations, and optionally compares bounded function bodies from supplied old-version coordinates. `PortingEngine.cs` combines exact, operand and surrounding-anchor discovery, globally deduplicates/ranks candidates, resolves explicit original section bases, and leaves changed code for a guided editor redesign. `CaveAnalysis.cs` streams branch/RIP references, checks mapped executable padding and generates address/byte-bound manual-review tokens. It does not prove lifetime or full reachability. `CheatEditing.cs` is the shared, Linux-testable editor validation/build boundary; WPF rows and commands call it directly.
+
+SHN support explicitly whitelists the known PS5Offset metadata leaf and author attributes. Unknown operational commands remain rejected by name. PS5 offsets round-trip in edited source SHN but are cleared in newly relocated PS4 target proposals. GoldHEN files do not carry internal dependency IDs; export is topologically ordered, and editable Studio sidecars retain complete metadata/dependencies. No new package dependency or protocol authentication mechanism was added.
+
+The 0.2 Windows smoke additionally imports the SHN metadata fixture, edits/adds/removes multiple lines, checks validation and real grid bindings, exports/rereads author/PS5 metadata, explicitly confirms the synthetic cave, tests dependency-ordered multi-line writes and rollback, loads the modified offline fixture/old evidence, follows the editor fallback, and instantiates every screen to check command bindings. See AUDIT-REPORT.md for actual run evidence.

@@ -1,0 +1,8 @@
+{
+  "start": "0x400000",
+  "length": 256,
+  "titleId": "CUSA39420",
+  "targetVersion": "01.05",
+  "simulationOnly": true,
+  "warning": "Artificial instruction data, not a PS4 dump or gameplay cheat."
+}

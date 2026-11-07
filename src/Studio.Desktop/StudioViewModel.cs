@@ -55,7 +55,7 @@ public sealed partial class StudioViewModel : Observable, IAsyncDisposable
     public bool IsIdle => !IsBusy;
     public bool AdvancedMode { get => advancedMode; set => Set(ref advancedMode, value); }
     public bool WritesEnabled { get => writesEnabled; set => Set(ref writesEnabled, value); }
-    public bool InstructionPatch { get => instructionPatch; set { if (Set(ref instructionPatch, value)) ResetAnalysis(); } }
+    public bool InstructionPatch { get => instructionPatch; set { if (Set(ref instructionPatch, value)) { ResetAnalysis(); ValidateEditor(); } } }
     private string status = "Ready. Connect your console or try the simulator.", errorMessage = "", analysisSummary = "Import a trainer to begin.", diagnostics = "Connect to run read-only diagnostics.", verificationStatus = "No cheat has been tested.", targetVersion = "01.05", profileName = "My game", profileTitle = "CUSA00000";
     public string Status { get => status; private set => Set(ref status, value); }
     public string ErrorMessage { get => errorMessage; private set => Set(ref errorMessage, value); }
@@ -88,12 +88,14 @@ public sealed partial class StudioViewModel : Observable, IAsyncDisposable
         set
         {
             if (!Set(ref selectedTrainer, value)) return;
+            if (sourcePackage is not null && value is not null && (sourcePackage.TitleId != value.TitleId || sourcePackage.Version != value.Version || sourcePackage.Process != value.Process))
+            { sourcePackage = null; EvidenceStatus = "Old context cleared because the selected source trainer changed identity/version."; }
             Cheats.Clear(); if (value is not null) foreach (var c in value.Cheats) Cheats.Add(c);
             SelectedCheat = Cheats.FirstOrDefault(); ResetAnalysis(); Changed(nameof(TrainerDetails));
         }
     }
     private Cheat? selectedCheat;
-    public Cheat? SelectedCheat { get => selectedCheat; set { if (Set(ref selectedCheat, value)) { ResetAnalysis(); Changed(nameof(SourcePatches)); } } }
+    public Cheat? SelectedCheat { get => selectedCheat; set { if (Set(ref selectedCheat, value)) { ResetAnalysis(); SourceSection = value?.Patches.FirstOrDefault()?.Section.ToString() ?? "0"; Changed(nameof(SourcePatches)); } } }
     private MemoryRegion? selectedRegion;
     public MemoryRegion? SelectedRegion { get => selectedRegion; set { if (Set(ref selectedRegion, value)) { ScanStart = value?.Start.ToString("X") ?? "0"; ScanLength = Math.Min(value?.Size ?? 0, 1048576).ToString(); } } }
     public IEnumerable<PatchLine> SourcePatches => SelectedCheat?.Patches ?? [];
@@ -138,7 +140,7 @@ public sealed partial class StudioViewModel : Observable, IAsyncDisposable
         ConnectCommand = Command(ConnectAsync);
         DisconnectCommand = Command(async _ => { await DisconnectAsync(); Status = "Disconnected. Read-only mode restored."; });
         SaveSettingsCommand = Command(async ct => { await SaveSettingsAsync(ct); Status = "Connection settings saved locally."; });
-        ImportCommand = Command(async ct => { var path = dialogs.Open("Import an existing trainer", "GoldHEN trainers|*.json;*.shn"); if (path is not null) ImportTrainer(TrainerCodec.Read(path)); await SaveLibraryAsync(ct); });
+        ImportCommand = Command(async ct => { var path = dialogs.Open("Import an existing trainer", "GoldHEN trainers|*.json;*.shn"); if (path is not null) { ImportTrainer(TrainerCodec.Read(path)); await SaveLibraryAsync(ct); if (Connected || offlineDump is not null) await AnalyzeAsync(ct); } });
         DemoTrainerCommand = Command(async ct => { ImportTrainer(DemoTrainer()); await SaveLibraryAsync(ct); });
         AnalyzeCommand = Command(AnalyzeAsync, () => SelectedCheat is not null && (Connected || offlineDump is not null));
         TestCommand = Command(TestAsync, () => Connected && port?.CanTest == true && WritesEnabled && offlineDump is null);
@@ -147,7 +149,7 @@ public sealed partial class StudioViewModel : Observable, IAsyncDisposable
         ExportCommand = Command(ExportAsync, () => port?.CanTest == true);
         ExportSourceCommand = Command(ExportSourceAsync, () => SelectedTrainer is not null);
         DiagnosticsCommand = Command(RunDiagnosticsAsync, () => Connected);
-        ExportDiagnosticsCommand = Command(async ct => { var path = dialogs.Save("Save diagnostics (includes connection IP and logs)", "CheatStudio-diagnostics.json", "JSON report|*.json"); if (path is not null) { await File.WriteAllTextAsync(path, log.Report(Settings(), client.Information, game, SimulationConnection, DiagnosticText), ct); Status = "Diagnostics saved. No memory dumps were included."; } });
+        ExportDiagnosticsCommand = Command(async ct => { var path = dialogs.Save("Save diagnostics (includes connection IP and logs)", "CheatStudio-diagnostics.json", "JSON report|*.json"); if (path is not null) { await File.WriteAllTextAsync(path, log.Report(Settings(), client.Information, game, SimulationConnection, DiagnosticText, offlineDump is not null), ct); Status = "Diagnostics saved. No memory dumps were included."; } });
         CancelCommand = new AsyncCommand(() => { operation?.Cancel(); return Task.CompletedTask; }, () => IsBusy);
         SetupNextCommand = Command(async ct => { if (SetupStep < 2) SetupStep++; else { await SaveSettingsAsync(ct, true); SetupFinished?.Invoke(); } });
         SetupBackCommand = new AsyncCommand(() => { if (SetupStep > 0) SetupStep--; return Task.CompletedTask; }, () => IsIdle && SetupStep > 0);
@@ -176,6 +178,8 @@ public sealed partial class StudioViewModel : Observable, IAsyncDisposable
             if (SelectedTrainer is not null) { Library.Remove(SelectedTrainer); SelectedTrainer = Library.FirstOrDefault(); await SaveLibraryAsync(ct); Status = "Trainer removed from the local library. Original file was preserved."; }
         }, () => SelectedTrainer is not null);
         InitializeAdvancedCommands(Command);
+        InitializeEditorCommands(Command);
+        InitializeEvidenceCommands(Command);
     }
     public async Task InitializeAsync()
     {
@@ -245,7 +249,7 @@ public sealed partial class StudioViewModel : Observable, IAsyncDisposable
     {
         if (debug is not null) { await debug.DisposeAsync(); debug = null; }
         client.Disconnect(); if (simulator is not null) { await simulator.DisposeAsync(); simulator = null; }
-        game = null; WritesEnabled = false; rollback = null; scan = null; ResetAnalysis(); Regions.Clear(); Processes.Clear(); RefreshLabels();
+        game = null; SimulationConnection = false; WritesEnabled = false; rollback = null; scan = null; ResetAnalysis(); Regions.Clear(); Processes.Clear(); RefreshLabels();
     }
     public void ImportTrainer(Trainer trainer)
     {
@@ -258,53 +262,27 @@ public sealed partial class StudioViewModel : Observable, IAsyncDisposable
     private void ResetAnalysis()
     {
         port = null; Candidates.Clear(); Proposed.Clear(); testedPlan = null; hardwareConfirmed = false;
+        lastSegments = null; reviewedCaveTokens.Clear(); explicitCandidates.Clear(); SelectedPortCandidate = null; Guidance = "";
         VerificationStatus = "No cheat has been tested."; AnalysisSummary = "Analyze the selected trainer against the target game or local dump.";
     }
     private void RefreshLabels() { Changed(nameof(Connected)); Changed(nameof(ConnectionLabel)); Changed(nameof(GameLabel)); Changed(nameof(DebuggerLabel)); CommandManager.InvalidateRequerySuggested(); }
     private async Task AnalyzeAsync(CancellationToken ct)
     {
         if (SelectedTrainer is null || SelectedCheat is null) throw new InvalidOperationException("Select a trainer and a cheat.");
-        ResetAnalysis(); var source = SelectedTrainer; var cheat = SelectedCheat;
-        List<(MemoryRegion Region, byte[] Bytes)> segments = [];
+        ResetAnalysis();
         if (offlineDump is not null)
         {
             if (SelectedRegion is null) throw new InvalidOperationException("Load a dump and specify its base address.");
-            segments.Add((SelectedRegion, offlineDump));
+            lastSegments = [(SelectedRegion, offlineDump)];
         }
         else
         {
             var current = await client.GetGameAsync(ct);
-            if (!current.IsGame || current.TitleId != source.TitleId || current.ProcessName != source.Process || current.Version != TargetVersion) throw new InvalidDataException("Trainer CUSA/process or target version does not match the detected running game. No scan or write was attempted.");
-            game = current;
-            var maps = (await client.GetMapsAsync(current.Pid, ct)).Where(r => r.Readable && (!InstructionPatch || r.Executable)).ToArray();
-            var budget = int.Parse(ScanBudget);
-            if (budget is < 1 or > 1024) throw new ArgumentException("The guided scan budget must be 1–1024 MiB.");
-            if (maps.Aggregate(0UL, (sum, r) => checked(sum + r.Size)) > (ulong)budget * 1048576) throw new InvalidDataException($"The relevant maps exceed the {budget} MiB scan budget. Increase the budget in Advanced Mode, or analyze a bounded offline dump. A partial search cannot establish uniqueness.");
-            var scanner = new MemoryScanner(session);
-            foreach (var map in maps)
-            {
-                for (ulong at = 0; at < map.Size;)
-                {
-                    var n = (int)Math.Min((ulong)MemoryScanner.MaximumBytes, map.Size - at);
-                    Status = $"Reading {map.Name}, 0x{map.Start + at:X} ({n / 1048576.0:F1} MiB)…";
-                    var bytes = await scanner.SnapshotAsync(current.Pid, map.Start + at, n, new Progress<double>(v => Progress = v * 100), ct);
-                    segments.Add((map with { Start = map.Start + at }, bytes));
-                    if (at + (ulong)n == map.Size) break;
-                    // Overlap by the largest patch, so network/window boundaries cannot hide a signature.
-                    var overlap = cheat.Patches.Max(p => p.Original.Length) - 1;
-                    at += (ulong)(n - overlap);
-                }
-            }
+            if (!current.IsGame || !current.HasKnownVersion || current.TitleId != SelectedTrainer.TitleId || current.ProcessName != SelectedTrainer.Process || current.Version != TargetVersion)
+                throw new InvalidDataException("Trainer CUSA/process or known XX.YY target version does not match the running game. No patch was attempted.");
+            game = current; lastSegments = await ReadTargetSegmentsAsync(current, SelectedCheat, ct);
         }
-        Status = "Comparing signatures, instruction layouts, caves and dependencies…";
-        port = await Task.Run(() => PortingEngine.AnalyzeSegments(cheat, segments, InstructionPatch, ct), ct);
-        foreach (var c in port.Candidates) Candidates.Add(c);
-        foreach (var p in port.ProposedPatches) Proposed.Add(p);
-        AnalysisSummary = port.Summary;
-        if (port.Candidates.Any(c => c.CodeCave)) AnalysisSummary += " Possible caves are padding, not proven unused space. Inspect them in Advanced Mode before testing.";
-        if (SimulationConnection) AnalysisSummary += " These results come from simulated memory, not a PS4.";
-        log.Write("Port analysis", AnalysisSummary); GuidedStep = 2; Progress = 100;
-        Status = port.CanTest ? "Candidates generated. Review them in the Test step." : "Analysis finished. Manual verification is required; no testable patch was invented.";
+        await AnalyzeCapturedAsync(ct);
     }
     private PatchPlan CreatePlan()
     {
@@ -312,7 +290,7 @@ public sealed partial class StudioViewModel : Observable, IAsyncDisposable
         var lines = port.ProposedPatches.Select(p =>
         {
             var map = Regions.Single(r => r.Index == p.Section);
-            return new ResolvedPatch(p.Id, checked(map.Start + p.Offset), p.Original.ToArray(), p.Replacement.ToArray(), p.Dependencies);
+            return new ResolvedPatch(p.Id, checked(map.Start + p.Offset), p.Original.ToArray(), p.Replacement.ToArray(), p.Dependencies, p.IsCodeCave, p.CaveUseApproved);
         }).ToList();
         return new(client.ConnectionId, game, SelectedCheat.Name, lines, InstructionPatch);
     }

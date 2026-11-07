@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Synthetic SHN structure regression, not a real or verified Infinite Health cheat. PS5 metadata values are illustrative. -->
+<Trainer xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" Game="Silksong SHN compatibility fixture — SYNTHETIC" Cusa="CUSA39420" Version="01.04" Process="eboot.bin" Moder="Alternate Trainer Author" Author="Metadata Fixture Contributor">
+  <Genres Name="Action"/><Items/>
+  <Cheat Text="Infinite Health — structure only" Description="Old hook/cave references from the owner; artificial trampoline for parser/relocation tests only.">
+    <Cheatline><PS5Offset>104FDB2-Il2CppUserAssemblies.prx[0]-5</PS5Offset><Section>14</Section><Offset>1B6BFED</Offset><ValueOn>E90E78C1029090</ValueOn><ValueOff>8943604883C408</ValueOff></Cheatline>
+    <Cheatline><Section>14</Section><Offset>4783800</Offset><PS5Offset>800-executable[0]-5</PS5Offset><ValueOn>8943604883C408E9E8873EFD</ValueOn><ValueOff>000000000000000000000000</ValueOff></Cheatline>
+  </Cheat>
+  <Cheat Text="Alternate author extra line — synthetic" Description="Preserved when editing the first cheat.">
+    <Cheatline><Section>14</Section><Offset>1B6C010</Offset><ValueOn>909090</ValueOn><ValueOff>894360</ValueOff></Cheatline>
+  </Cheat>
+</Trainer>

@@ -6,11 +6,11 @@ On first launch, the three-page wizard explains the safety model, saves your con
 
 Load the debugger yourself before connecting. Do not choose simulator mode when you intend to use a real PS4. The green connection label always distinguishes a live connection, a simulator and an offline dump.
 
-Import a `.json` or `.shn` trainer. Select a cheat in **Choose trainer**. Fixed checkbox memory patches are supported; extended commands/scripts/sliders are rejected rather than silently dropped. SHN section indices and absolute flags are preserved for inspection. Absolute-address SHN patches need manual mapping and are not automatically ported.
+Import a `.json` or `.shn` trainer. Select a cheat in **Choose trainer**. Fixed checkbox memory patches are supported; extended commands/scripts/sliders are rejected rather than silently dropped. Known SHN PS5Offset text, original author attributes and genres are preserved during SHN round trips. PS5Offset never overrides PS4 Section/Offset fields. New PS4 target proposals clear old PS5 offsets instead of claiming they apply to another platform/version. SHN section indices and absolute flags are preserved for inspection. Absolute-address SHN patches need manual mapping and are not automatically ported.
 
 For code/instruction cheats leave the instruction option checked. For fixed values clear it. The search requires the source CUSA/process to match the running game, and uses the detected target version. It searches every relevant readable region within the bounded budget (default 256 MiB, adjustable up to 1024 MiB in Advanced Mode). It does not silently scan a small prefix and claim a unique match. If relevant maps exceed the budget, increase it or use a bounded offline dump.
 
-The analysis compares original signatures, x86-64 instruction layout, possible padding/caves, branch relocation and dependencies. A missing signature, ambiguous match, changed original bytes or unknown external jump target stops automatic proposal generation. A cave is **possible padding**, not proof of unused memory. Inspect proposed caves manually. The score is an evidence indicator, not a percentage chance of success. Equivalent functions, game semantics and safe unused caves are not automatically proven.
+The analysis compares original signatures, x86-64 instruction layout, possible padding/caves, branch relocation and dependencies. A missing signature, ambiguous match, changed original bytes or unknown external jump target stops automatic proposal generation. A cave is **possible padding**, not proof of unused memory. Select a possible cave and choose **Review selected cave**. A proposal remains blocked until you explicitly confirm its use; detected incoming code/data references or invalid executable mappings cannot be bypassed with that confirmation. The score is an evidence indicator, not a percentage chance of success. Equivalent functions, game semantics and safe unused caves are not automatically proven.
 
 ## Test with a rollback path
 
@@ -36,7 +36,7 @@ The library persists locally. Import, select, export or remove a trainer without
 
 - **Processes:** refresh processes and view maps, sizes, permissions and indices. Ordinary patching remains restricted to the foreground CUSA `eboot.bin`, even though process names can be inspected.
 - **Scanner:** exact or unknown initial values; byte, Int16/32/64, float, double or hexadecimal data. Use changed/unchanged/increased/decreased or exact rescans. Numeric scans use natural alignment from the selected range start. Int64 comparison preserves every bit. AOB searches accept `??` whole-byte wildcards and can match across 64 KiB reads. Numeric hits are bounded to 500,000; the UI displays at most 5,000. A range is at most 64 MiB. Save/open scans locally; a rescan needs the original live session.
-- **Code & patches:** read hex and disassemble x86-64 locally with Iced, inspect resolved branch destinations and padding, create whole-instruction NOPs or rel32 jumps, add an unverified manual draft to the library, or explicitly review/test a manual patch. Hex editing is expressed as an original/replacement patch, never as an unreviewed direct edit. Multi-line drafts can be authored/imported using the documented trainer format; the UI does not include a multi-line graphical editor.
+- **Code & patches:** read hex and disassemble x86-64 locally with Iced, inspect resolved branch destinations and padding, create whole-instruction NOPs or rel32 jumps, add an unverified manual draft to the library, or explicitly review/test a manual patch. Hex editing is expressed as an original/replacement patch, never as an unreviewed direct edit. The separate **Cheat editor** supports multi-line drafts without raw XML; see below.
 - **Live tracking:** polls the manual patch address with the selected numeric type every 500 ms. Cancel stops tracking. It does not freeze or automatically write values.
 - **Offline dump:** set the original hexadecimal base address before opening a raw file (1 byte–64 MiB). Loading disconnects the console. Import a trainer, set the target version, then analyze. No live tests or hardware confirmation are available. Captured ranges include a `.map.json` address sidecar.
 - **Watchpoints:** enable write testing, supply this PC's LAN IPv4, explicitly attach, and set an aligned hardware write watchpoint in slot 0 (1/2/4/8 bytes). Interrupts show thread, RIP, RSP and registers. RIP is normally after the memory access: inspect preceding instructions. Read registers, step a thread, resume, clear or detach. All four slots are supported by the protocol API; the UI exposes slot 0. Detach clears debugger state. This is manual tracing, not automatic code-flow recovery.
@@ -44,3 +44,35 @@ The library persists locally. Import, select, export or remove a trainer without
 ## Local data and privacy
 
 Settings, library, verification history, structured logs and rollback journals live under `%LOCALAPPDATA%\PS4GoldHENCheatStudio`. Logs rotate at 5 MiB. Diagnostics are generated automatically on connect and can be rerun/exported. Reports include addresses/settings/log messages but exclude memory dumps and save data; inspect them before sharing. No telemetry, updater, cheat download or cloud API runs in the background.
+
+
+## Graphical multi-line editor (0.2)
+
+Use **Cheat editor → Edit selected library cheat**, or **New cheat**. Add/remove lines, set stable line IDs, decimal sections, hexadecimal offsets/original/replacement bytes, comma-separated dependencies, absolute flags and optional PS5 metadata. The Cave checkbox declares a possible cave; it does not approve it. Clear Instruction/code patch for fixed data-value patches.
+
+Validation runs as fields change. Length mismatches, bad hex, overlapping lines, missing/cyclic dependencies and branches into replacement-instruction interiors prevent saving/testing. Hook-to-cave branches require that cave's line ID in Dependencies. Tabs show both original/replacement disassembly and branch/return destinations. Cross-section jump inspection needs explicit section=base mappings, e.g. `14=400000;18=600000`; offsets alone cannot establish those relationships.
+
+**Save unverified copy to library** preserves the original file and library entry. Other cheats and original authors remain in the copy unless **Keep only the edited cheat** is selected. A target-version/title/process change with multiple cheats requires that option: changing metadata cannot port untouched cheats. Edited SHN preserves PS5Offset; JSON cannot represent SHN PS5 metadata or nonzero section mappings. Every editor export also saves a `.studio-project.json` sidecar containing full IDs/dependencies/metadata. **Save/Open editable project** keeps these fields without adding undocumented operational commands to GoldHEN files. Standard export orders dependencies before hooks, but GoldHEN's own activation remains non-atomic.
+
+**Review/test edited cheat** requires a matching live CUSA/version/process, fresh expected-byte/mapping checks, cave/reference analysis where applicable, separate cave acknowledgment and the exact-byte write confirmation. Offline editor work cannot become a live or hardware-confirmed test. For the ordinary guided path, save the draft to the library, analyze it, test with rollback, then record actual gameplay separately.
+
+## When the old instruction changed
+
+The app searches original/relocation-independent signatures, operand shapes and, when old context exists, surrounding instruction anchors. It aligns old/new instructions, describes changed registers/field offsets/layout and compares internal branch destinations. Candidates are ranked with explanations; external callees/data references remain unproven. A changed candidate never receives the old replacement automatically.
+
+Expand **Old-version context** in Analyze. A captured `.studio-evidence.json` includes CUSA/version/process, original bytes and coordinates. Alternatively load a raw old dump after entering its original section number, section base and dump start. Optional independently known function start/length (up to 4096 bytes) permits bounded entry/return and instruction/branch-structure comparison. Function bounds are not invented, and that comparison does not prove semantic equivalence.
+
+To collect missing data automatically, connect to the **exact old game version**, import its trainer, and choose **Capture old context**. The app reads the relevant ranges and verifies the trainer's original bytes. If section indices moved, supply original section=base mappings. Save the package locally, reconnect to the target version, then analyze. The new version cannot supply old-version evidence. No dumps are uploaded.
+
+Select a changed candidate and choose **Inspect in editor**. The draft uses actual captured target originals and shows the old replacement unchanged for review; altered length/layout may make it invalid until you redesign it. Use memory tools/watchpoints during gameplay to determine which instruction really writes health/currency. A generated draft is not gameplay verification.
+
+### Try the complete modified-code fallback offline
+
+All these samples are artificial, not game dumps or usable health cheats:
+
+1. In Advanced → Code & patches, set dump base `400000` and open `examples/silksong-synthetic-modified.bin`.
+2. Import `examples/silksong-context-demo.shn`. Automatic analysis finds a changed operand and refuses to apply the old patch.
+3. In Analyze, load `examples/silksong-synthetic-old.studio-evidence.json`. Inspect the added context/function evidence and differences.
+4. Choose **Inspect in editor**, review/change the draft, save an unverified copy and analyze again. Live testing stays disabled while offline.
+
+The separate `examples/silksong-metadata-structure.shn` exercises Section 14, offset 1B6BFED, PS5Offset, alternate authors, multiple cheats and the old cave reference 4783800. Its replacement/trampoline bytes are synthetic and must not be treated as a real Infinite Health trainer.

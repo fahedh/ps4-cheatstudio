@@ -15,6 +15,14 @@ public class PortingTests
         Assert.True(f.SimulatedOnly); var bytes = Hex.Bytes(f.TargetHex); var start = Hex.Address(f.Base);
         var cheat = new Cheat(f.Name, "Synthetic acceptance case", f.Patches.Select(p => new PatchLine(p.Id, 14, Hex.Address(p.Offset), Hex.Bytes(p.Original), Hex.Bytes(p.Replacement), [])).ToList());
         var result = PortingEngine.AnalyzeSegments(cheat, [(new(0, start, start + (ulong)bytes.Length, 0, 5, "executable"), bytes)], true);
+        if (name == "relative-multiline")
+        {
+            // Safety correction: padding must first be explicitly reviewed, even in a deterministic fixture.
+            Assert.False(result.CanTest); Assert.Contains(result.Warnings, w => w.Contains("padding is not proof"));
+            var cave = Assert.Single(result.Candidates, c => c.CodeCave); Assert.True(cave.Cave!.CanReview); Assert.False(cave.Cave.ConfirmedByUser);
+            result = PortingEngine.AnalyzeSegments(cheat, [(new(0, start, start + (ulong)bytes.Length, 0, 5, "executable"), bytes)], true,
+                options: new() { ReviewedCaves = [cave.Cave.ReviewToken] });
+        }
         Assert.True(f.ExpectedTestable == result.CanTest, result.Summary); Assert.Equal(f.ExpectedMatches, result.Candidates.Count);
         if (!f.ExpectedTestable) { Assert.Empty(result.ProposedPatches); Assert.Contains("Manual verification required", result.Summary); }
         else Assert.All(result.Candidates, c => Assert.Equal("Generated candidate — not verified", c.Status));

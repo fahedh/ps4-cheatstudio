@@ -56,4 +56,6 @@ dotnet publish src/Studio.MockHost -c Release -r win-x64 --self-contained true -
 - [Pending hardware checks](docs/HARDWARE-CHECKLIST.md)
 - [Reference investigation and licenses](docs/REFERENCES.md), [third-party notices](THIRD-PARTY-NOTICES.md)
 
+The 0.2 audit adds real-world SHN metadata compatibility, contextual instruction comparison, explicit cave review, a graphical multi-line editor and a guided changed-code fallback. See [audit corrections and current validation](docs/AUDIT-REPORT.md).
+
 Code is MIT licensed. No source, payloads, trainers or save-editing scripts were copied from projects with unclear or incompatible redistribution terms. Examples are synthetic, using the old instruction metadata supplied in this project's specification.

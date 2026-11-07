@@ -39,10 +39,10 @@ public sealed class DiagnosticsLog(string directory)
         }
         Added?.Invoke(e);
     }
-    public string Report(ConnectionSettings settings, DebuggerInfo? info, GameIdentity? game, bool simulation, string checkResults) => JsonSerializer.Serialize(new
+    public string Report(ConnectionSettings settings, DebuggerInfo? info, GameIdentity? game, bool simulation, string checkResults, bool offline = false) => JsonSerializer.Serialize(new
     {
-        application = "PS4 GoldHEN Cheat Studio 0.1.0", generated = DateTimeOffset.UtcNow,
-        mode = simulation ? "Simulation only — no PS4 hardware validation" : "Live connection — hardware behavior requires user confirmation",
+        application = "PS4 GoldHEN Cheat Studio 0.2.0", generated = DateTimeOffset.UtcNow,
+        mode = offline ? "Offline dump — no live connection or hardware validation" : simulation ? "Simulation only — no PS4 hardware validation" : "Live connection — hardware behavior requires user confirmation",
         runtime = System.Runtime.InteropServices.RuntimeInformation.FrameworkDescription,
         settings, debugger = info, runningGame = game, checks = checkResults,
         safety = "Read-only by default; patches require byte validation and explicit confirmation. Reports contain IP/settings/logs but no memory dumps.",

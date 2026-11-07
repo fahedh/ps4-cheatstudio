@@ -3,7 +3,7 @@ using System.Text.Json;
 
 namespace Studio.Core;
 
-public record ResolvedPatch(string Id, ulong Address, byte[] Original, byte[] Replacement, string[] Dependencies);
+public record ResolvedPatch(string Id, ulong Address, byte[] Original, byte[] Replacement, string[] Dependencies, bool IsCodeCave = false, bool CaveUseApproved = false);
 public record PatchPlan(Guid ConnectionId, GameIdentity Game, string CheatName, List<ResolvedPatch> Patches, bool InstructionPatch);
 public record PatchReview(string Digest, PatchPlan Plan, string Description);
 public record PatchApproval(string Digest, bool EnableWrites, bool AcceptCrashRisk);
@@ -58,14 +58,17 @@ public sealed class PatchService(MemorySession session, string journalDirectory)
     {
         if (plan.ConnectionId == Guid.Empty || plan.ConnectionId != session.Memory.ConnectionId) throw new InvalidDataException("The console connection changed. Analyze the cheat again.");
         var game = await session.Memory.GetGameAsync(ct);
-        if (!game.IsGame || !game.SameGame(plan.Game) || string.IsNullOrEmpty(game.Version)) throw new InvalidDataException("Running game, process, CUSA or exact version does not match the reviewed plan.");
+        if (!game.IsGame || !game.SameGame(plan.Game) || !game.HasKnownVersion) throw new InvalidDataException("Running game, process, CUSA or known XX.YY version does not match the reviewed plan.");
     }
     private async Task CheckOriginals(PatchPlan plan, CancellationToken ct)
     {
         var maps = await session.Memory.GetMapsAsync(plan.Game.Pid, ct);
         foreach (var p in plan.Patches)
         {
-            if (p.Address >= 0x0000800000000000 || !maps.Any(m => m.Readable && m.Contains(p.Address, p.Original.Length))) throw new InvalidDataException($"Patch 0x{p.Address:X} is outside mapped user memory.");
+            if (p.Address >= 0x0000800000000000 || !maps.Any(m => m.Readable && (!plan.InstructionPatch && !p.IsCodeCave || m.Executable) && m.Contains(p.Address, p.Original.Length))) throw new InvalidDataException($"Patch 0x{p.Address:X} is outside mapped user memory or lacks executable permission for a code patch.");
+            if (plan.InstructionPatch) foreach (var instruction in CodeAnalysis.Decode(p.Replacement, p.Address).Where(CodeAnalysis.IsBranch))
+                if (instruction.NearBranchTarget >= 0x0000800000000000 || !maps.Any(m => m.Readable && m.Executable && m.Contains(instruction.NearBranchTarget, 1)))
+                    throw new InvalidDataException($"{p.Id}: branch destination 0x{instruction.NearBranchTarget:X} is outside readable executable user memory. Correct the jump/return mapping before testing.");
             var original = await session.Memory.ReadAsync(plan.Game.Pid, p.Address, p.Original.Length, ct);
             if (!original.SequenceEqual(p.Original)) throw new InvalidDataException($"Original-byte mismatch at 0x{p.Address:X}. Nothing was written.");
         }
@@ -76,10 +79,25 @@ public sealed class PatchService(MemorySession session, string journalDirectory)
         foreach (var p in plan.Patches)
         {
             if (p.Original.Length == 0 || p.Original.Length != p.Replacement.Length || p.Original.Length > 1048576 || p.Address > ulong.MaxValue - (ulong)p.Original.Length) throw new InvalidDataException("Invalid patch size or address.");
+            var padding = plan.InstructionPatch && p.Original.Length >= 5 && p.Original.All(b => b == p.Original[0]) && p.Original[0] is 0 or 0x90 or 0xCC;
+            if ((p.IsCodeCave || padding) && !p.CaveUseApproved) throw new InvalidDataException("A possible code cave requires explicit confirmation of its use; padding alone is not proof of safe executable space. Review it through the candidate workflow or multi-line editor.");
             if (plan.InstructionPatch) { CodeAnalysis.Decode(p.Original, p.Address); CodeAnalysis.Decode(p.Replacement, p.Address); }
         }
         var byAddress = plan.Patches.OrderBy(p => p.Address).ToArray();
         for (var i = 1; i < byAddress.Length; i++) if (byAddress[i - 1].Address + (ulong)byAddress[i - 1].Original.Length > byAddress[i].Address) throw new InvalidDataException("Overlapping patches are not allowed.");
+        if (plan.InstructionPatch)
+        {
+            foreach (var p in plan.Patches)
+                foreach (var jump in CodeAnalysis.Decode(p.Replacement, p.Address).Where(CodeAnalysis.IsBranch))
+                {
+                    var destination = plan.Patches.FirstOrDefault(other => jump.NearBranchTarget >= other.Address && jump.NearBranchTarget - other.Address < (ulong)other.Replacement.Length);
+                    if (destination is null) continue;
+                    if (!CodeAnalysis.Decode(destination.Replacement, destination.Address).Any(i => i.IP == jump.NearBranchTarget))
+                        throw new InvalidDataException($"{p.Id}: branch destination lands inside a replacement instruction in {destination.Id}.");
+                    if (destination.Id != p.Id && destination.IsCodeCave && !p.Dependencies.Contains(destination.Id))
+                        throw new InvalidDataException($"{p.Id}: cave dependency {destination.Id} must precede the hook.");
+                }
+        }
         Order(plan.Patches);
     }
     private static List<ResolvedPatch> Order(List<ResolvedPatch> lines)

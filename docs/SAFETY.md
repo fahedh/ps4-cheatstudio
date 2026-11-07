@@ -15,3 +15,6 @@
 - Scans/reads/results/timeouts are bounded and cancellable. Socket failures/cancellation discard potentially desynchronized streams. Logs rotate and in-memory logs are bounded.
 
 Unsigned Windows packages have no publisher attestation. Verify the release checksum, source and workflow provenance. Automatic tests are artificial; follow HARDWARE-CHECKLIST.md before considering any production-readiness claim.
+
+
+Audit corrections (0.2): possible caves cannot become testable from padding alone. Explicit cave use is bound to its address/expected bytes, while detected code/data references or missing executable permissions block it. Original bytes are re-read again at the write boundary. This is still a bounded static reference check and a user judgment, not allocation-lifetime proof. Changed instructions/layouts are never automatically overwritten with the old replacement. Their guided editor path remains unverified until explicit testing. Game-version strings must have known XX.YY syntax; a nonempty unknown value is insufficient. Standard SHN/JSON exports preserve dependency order; full dependency IDs and optional metadata live in Studio project sidecars when the external format cannot represent them.

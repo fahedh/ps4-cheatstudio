@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Artificial old-version context fixture. Replacement NOPs are not a working health cheat. -->
+<Trainer Game="Silksong modified-code workflow — SYNTHETIC ONLY" Cusa="CUSA39420" Version="01.04" Process="eboot.bin" Moder="Synthetic QA Fixture">
+ <Cheat Text="Modified-field comparison — not a real health cheat" Description="Demonstrates finding a changed field operand, collecting evidence, and manual review. Do not install on a real game.">
+  <Cheatline><Section>14</Section><Offset>1B6BFED</Offset><PS5Offset>illustrative-metadata-only</PS5Offset><ValueOff>8943604883C408</ValueOff><ValueOn>90909090909090</ValueOn></Cheatline>
+ </Cheat>
+</Trainer>

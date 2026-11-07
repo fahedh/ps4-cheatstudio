@@ -1,0 +1,15 @@
+{
+  "TitleId": "CUSA39420",
+  "Version": "01.04",
+  "Process": "eboot.bin",
+  "Sources": [
+    {
+      "Section": 14,
+      "SectionBase": 0,
+      "Start": 28753881,
+      "Bytes": "VUiJ5UiD7CBIi10ISItNEEiLVRiJQ2BIg8QISItFEEiDxCBdww==",
+      "FunctionStart": 28753881,
+      "FunctionLength": 37
+    }
+  ]
+}

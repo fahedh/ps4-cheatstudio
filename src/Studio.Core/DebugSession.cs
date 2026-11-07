@@ -36,7 +36,7 @@ public sealed class DebugSession(DebuggerClient client) : IAsyncDisposable
         catch
         {
             timeout.Cancel(); listener.Stop(); eventClient?.Dispose();
-            try { await accept; } catch (Exception e) when (e is OperationCanceledException or SocketException or ObjectDisposedException) { }
+            try { var accepted = await accept; if (!ReferenceEquals(accepted, eventClient)) accepted.Dispose(); } catch (Exception e) when (e is OperationCanceledException or SocketException or ObjectDisposedException) { }
             client.Disconnect(); throw;
         }
     }

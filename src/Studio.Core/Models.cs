@@ -24,6 +24,7 @@ public record ProcessEntry(int Pid, string Name);
 public record GameIdentity(int Pid, string Name, string TitleId, string Version, string ProcessName)
 {
     public bool IsGame => Pid > 0 && Regex.IsMatch(TitleId, @"^CUSA\d{5}$") && ProcessName == "eboot.bin";
+    public bool HasKnownVersion => Regex.IsMatch(Version, @"^\d{2}\.\d{2}$");
     public bool SameGame(GameIdentity other) => Pid == other.Pid && TitleId == other.TitleId && Version == other.Version && ProcessName == other.ProcessName;
 }
 public record MemoryRegion(int Index, ulong Start, ulong End, ulong Offset, ulong Protection, string Name)
@@ -38,7 +39,7 @@ public record MemoryRegion(int Index, ulong Start, ulong End, ulong Offset, ulon
 public record DebuggerInfo(string Protocol, string Brand, string Capability, ushort Firmware, ushort Platform)
 {
     // fw.c returns major * 100 + minor, despite the BCD example in PROTOCOL.md.
-    public string FirmwareDisplay => $"{Firmware / 100}.{Firmware % 100:00}";
+    public string FirmwareDisplay => Firmware == ushort.MaxValue ? "Unavailable" : $"{Firmware / 100}.{Firmware % 100:00}";
     public bool VerifiedWrites => System.Version.TryParse(Capability, out var c) && c >= new Version(1, 1);
     public bool IsNg => Brand.StartsWith("ps4debug-NG by Pharaoh2k v", StringComparison.Ordinal);
 }
@@ -79,14 +80,15 @@ public record ConnectionSettings
     }
 }
 
-public record PatchLine(string Id, int Section, ulong Offset, byte[] Original, byte[] Replacement, string[] Dependencies, bool Absolute = false)
+public record PatchLine(string Id, int Section, ulong Offset, byte[] Original, byte[] Replacement, string[] Dependencies, bool Absolute = false, string? Ps5Offset = null, bool IsCodeCave = false, bool CaveUseApproved = false)
 {
     public string OffsetHex => $"0x{Offset:X}";
     public string OriginalHex => Hex.Format(Original);
     public string ReplacementHex => Hex.Format(Replacement);
 }
 public record Cheat(string Name, string Description, List<PatchLine> Patches);
-public record Trainer(string Name, string TitleId, string Version, string Process, List<Cheat> Cheats);
+public record TrainerMetadata(Dictionary<string, string> Authors, List<string> Genres, List<string> Credits, string? Description = null);
+public record Trainer(string Name, string TitleId, string Version, string Process, List<Cheat> Cheats, TrainerMetadata? Metadata = null);
 public record VerificationRecord(DateTimeOffset Time, string TitleId, string Version, string Process, string Cheat, string Outcome, string Notes);
 public record GameProfile
 {

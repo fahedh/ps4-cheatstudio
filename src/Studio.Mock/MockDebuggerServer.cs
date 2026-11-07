@@ -14,6 +14,12 @@ public sealed class MockDebuggerServer : IAsyncDisposable
     public GameIdentity Game { get; set; } = new(100, "Simulated Silksong", "CUSA39420", "01.05", "eboot.bin");
     public IReadOnlyList<MemoryRegion> Regions { get; set; } = [new(0, BaseAddress, BaseAddress + 0x20000, 0, 5, "executable"), new(1, BaseAddress + 0x20000, BaseAddress + 0x30000, 0, 3, "data")];
     public int FragmentSize { get; set; } = int.MaxValue;
+    public string ProtocolVersion { get; set; } = "1.3";
+    public string Branding { get; set; } = "ps4debug-NG by Pharaoh2k v1.3.4 [SIMULATOR]\0" + "1.1";
+    public ushort FirmwareVersion { get; set; } = 1352;
+    public ushort PlatformId { get; set; } = 4;
+    public bool FailAttachAfterCallback { get; set; }
+    public List<byte[]> WatchpointPackets { get; } = [];
     public TimeSpan ResponseDelay { get; set; }
     public uint? NextStatus { get; set; }
     public bool DisconnectOnRead { get; set; }
@@ -66,10 +72,10 @@ public sealed class MockDebuggerServer : IAsyncDisposable
                 if (NextStatus is uint forced) { NextStatus = null; await Status(stream, forced, ct); continue; }
                 switch (command)
                 {
-                    case Wire.Version: await StringReply(stream, "1.3", ct); break;
-                    case Wire.Branding: await StringReply(stream, "ps4debug-NG by Pharaoh2k v1.3.4 [SIMULATOR]\0" + "1.1", ct); break;
-                    case Wire.Firmware: await Reply(stream, BitConverter.GetBytes((ushort)1352), ct); break;
-                    case Wire.Platform: await Reply(stream, BitConverter.GetBytes((ushort)4), ct); break;
+                    case Wire.Version: await StringReply(stream, ProtocolVersion, ct); break;
+                    case Wire.Branding: await StringReply(stream, Branding, ct); break;
+                    case Wire.Firmware: await Reply(stream, BitConverter.GetBytes(FirmwareVersion), ct); break;
+                    case Wire.Platform: await Reply(stream, BitConverter.GetBytes(PlatformId), ct); break;
                     case Wire.Ping: await Status(stream, Wire.Success, ct); break;
                     case Wire.Processes:
                         var processes = new byte[76]; Wire.Put32(processes, 0, 2);
@@ -104,10 +110,12 @@ public sealed class MockDebuggerServer : IAsyncDisposable
                         if (body.Length != 8 || Wire.U32(body) != Game.Pid || attached) { await Status(stream, 0xF0000004, ct); break; }
                         events = new TcpClient();
                         await events.ConnectAsync(new IPAddress(body.AsSpan(4, 4)), 755, ct);
+                        if (FailAttachAfterCallback) { await Status(stream, 0xF0000001, ct); events.Dispose(); events = null; break; }
                         attached = true; await Status(stream, Wire.Success, ct); break;
                     case Wire.Detach: attached = false; events?.Dispose(); events = null; await Status(stream, Wire.Success, ct); break;
                     case Wire.Watchpoint:
                         if (!attached || body.Length != 24 || Wire.U32(body) > 3) { await Status(stream, 0xF0000005, ct); break; }
+                        WatchpointPackets.Add(body.ToArray());
                         await Status(stream, Wire.Success, ct);
                         if (Wire.U32(body, 4) != 0 && events is not null) await SendInterrupt(events.GetStream(), ct);
                         break;
