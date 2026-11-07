@@ -22,3 +22,12 @@ All items remain pending until explicitly tested. Target reference: PS4 Fat, fir
 - [ ] Record the real gameplay observation separately from byte-transfer success, including game/version, exact trainer bytes, tester, console/payload details and limitations.
 
 The supplied synthetic NOP replacement is **not** a finished Infinite Health patch. The correct Silksong 01.05 cheat cannot be established without real target code/gameplay evidence. Do not label a release production ready based only on simulator or compile results.
+
+
+0.2 audit additions:
+
+- [ ] Import the user's actual v01.04 SHN with PS5Offset; verify all PS4 section/offset/bytes, original authors and multiple lines survive export/reimport. Check that unsupported operational commands are reported by name rather than removed.
+- [ ] Capture old hook/function context on the exact old version, with independently verified section bases. New-version data must be refused as old evidence. Old padding is not treated as old-function evidence.
+- [ ] On v01.05, inspect changed operands/layouts, function/branch evidence and ambiguous candidates. Verify the proposed health writer with a gameplay watchpoint; matching/ranking alone is insufficient.
+- [ ] Review cave lifetime, executable mappings, instruction boundaries and incoming references before the separate acknowledgment. Verify both hook and return destinations and dependency order on real code.
+- [ ] Exercise multi-line graphical editing, live preflight rejection, direct/guided byte tests, same-session rollback and exported GoldHEN enable/disable behavior with backed-up saves.
