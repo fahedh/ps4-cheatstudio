@@ -37,8 +37,13 @@ jobs:
         run: |
           $app = Start-Process -FilePath "$pwd/artifacts/publish/app/PS4GoldHENCheatStudio.exe" -ArgumentList '--smoke-test' -WorkingDirectory $pwd -PassThru
           if (!$app.WaitForExit(120000)) { $app.Kill(); throw 'WPF smoke test timed out' }
-          if ($app.ExitCode -ne 0) { Get-Content artifacts/ui-smoke/result.txt; throw "WPF smoke test failed ($($app.ExitCode))" }
-          Get-Content artifacts/ui-smoke/result.txt
+          $app.Refresh()
+          $smoke = if (Test-Path artifacts/ui-smoke/result.txt) { Get-Content artifacts/ui-smoke/result.txt -Raw } else { 'No smoke result file was produced.' }
+          $smoke | Out-File -Append -FilePath $env:GITHUB_STEP_SUMMARY
+          Write-Output $smoke
+          $annotation = $smoke.Replace('%', '%25').Replace("`r", '%0D').Replace("`n", '%0A')
+          if ($app.ExitCode -ne 0) { Write-Output "::error title=WPF smoke failure::$annotation"; throw "WPF smoke test failed ($($app.ExitCode))" }
+          Write-Output "::notice title=WPF smoke success::$annotation"
       - name: Package portable application
         shell: pwsh
         run: ./build/Package.ps1
