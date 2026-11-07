@@ -1,0 +1,84 @@
+name: Windows build and portable release
+
+on:
+  push:
+    branches: [main, work]
+    tags: ['v*']
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.403'
+      - name: Restore
+        run: dotnet restore PS4GoldHENCheatStudio.sln --locked-mode
+      - name: Compile
+        run: dotnet build PS4GoldHENCheatStudio.sln -c Release --no-restore
+      - name: Unit and protocol integration tests (simulation only)
+        run: dotnet test tests/Studio.Tests -c Release --no-build --logger "trx;LogFileName=windows.trx" --results-directory artifacts/test-results
+      - name: Publish standalone Windows desktop and simulator
+        shell: pwsh
+        run: |
+          dotnet publish src/Studio.Desktop -c Release -r win-x64 --self-contained true -p:StudioPublish=true -o artifacts/publish/app
+          if ($LASTEXITCODE -ne 0) { throw 'Desktop publish failed' }
+          dotnet publish src/Studio.MockHost -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:StudioPublish=true -o artifacts/publish/mock
+          if ($LASTEXITCODE -ne 0) { throw 'Simulator publish failed' }
+      - name: Launch published WPF application and test guided workflow
+        shell: pwsh
+        run: |
+          $app = Start-Process -FilePath "$pwd/artifacts/publish/app/PS4GoldHENCheatStudio.exe" -ArgumentList '--smoke-test' -WorkingDirectory $pwd -PassThru
+          if (!$app.WaitForExit(120000)) { $app.Kill(); throw 'WPF smoke test timed out' }
+          if ($app.ExitCode -ne 0) { Get-Content artifacts/ui-smoke/result.txt; throw "WPF smoke test failed ($($app.ExitCode))" }
+          Get-Content artifacts/ui-smoke/result.txt
+      - name: Package portable application
+        shell: pwsh
+        run: ./build/Package.ps1
+      - name: Upload portable Windows package
+        uses: actions/upload-artifact@v4
+        with:
+          name: PS4GoldHENCheatStudio-win-x64
+          path: |
+            artifacts/PS4GoldHENCheatStudio-win-x64.zip
+            artifacts/SHA256SUMS.txt
+          if-no-files-found: error
+      - name: Upload test evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Windows-test-evidence
+          path: |
+            artifacts/test-results/**
+            artifacts/ui-smoke/**
+          if-no-files-found: warn
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: windows
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: PS4GoldHENCheatStudio-win-x64
+          path: release
+      - uses: softprops/action-gh-release@v2
+        with:
+          prerelease: true
+          generate_release_notes: true
+          body: |
+            Portable Windows x64 application. Extract the ZIP and launch PS4GoldHENCheatStudio.exe; no .NET SDK or Visual Studio is needed.
+
+            This is an experimental, simulated-test milestone. Automated transport/analysis/rollback tests do not establish real-PS4 or Silksong cheat compatibility. See the hardware checklist and feature report in the ZIP.
+          files: |
+            release/PS4GoldHENCheatStudio-win-x64.zip
+            release/SHA256SUMS.txt

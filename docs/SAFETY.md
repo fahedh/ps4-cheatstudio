@@ -1,0 +1,17 @@
+# Safety and security model
+
+- Read-only is the initial state on every connection. No candidate is applied automatically.
+- Every ordinary memory write, including rollback, requires opt-in plus a separate review of exact addresses/bytes and explicit acceptance of crash/save-corruption risk.
+- The patch service restricts the ordinary workflow to the currently foregrounded CUSA `eboot.bin` with a known exact version. Session/PID/title/version/process are rechecked. System processes and canonical kernel addresses are rejected. The library contains no kernel read/write command wrappers.
+- All targets must fit a current readable user map. The tool does not change memory protection or allocate executable pages behind the user's back. Process writes are delegated to the documented debugger, whose capability 1.1 promises content-verified status; the app independently reads back too.
+- Expected originals must match in the preflight and immediately before each write. Plans reject overlapping patches, invalid instruction boundaries, missing/cyclic dependencies, stale connection identities and approval mutation.
+- Journals are persisted **before** writing. A partial network/write failure is not atomic and can leave a patch partly active. The app never claims an automatic rollback succeeded after an uncertain failure. Stop gameplay and inspect the saved bytes. Session changes block automatic restoration.
+- Patches are not made safe merely by exact bytes. Unique matches do not prove function equivalence. Padding does not prove a safe code cave. Pausing all game threads is not automatic. The game can change between reads and writes.
+- Generated candidates, byte-write/readback checks, and user-reported gameplay success have distinct labels. Simulation cannot be marked hardware confirmed. Importing a profile cannot promote old verification records into an active approval.
+- Transport is the debugger's unauthenticated LAN TCP protocol. Use a trusted local network, never expose ports 744 or 755 to the public Internet. Scan-family authentication is intentionally not reproduced; local scans use documented process reads. The branding string is not cryptographic identity.
+- Watchpoint attachment and stepping alter execution and require a separate confirmation and write-testing opt-in. Detach clears debug state. No software breakpoints (which write INT3), register modification, system/kernel editing, payload reinjection or destructive console commands are implemented.
+- No telemetry, automatic uploads, cloud inference or background downloads. Diagnostics include IP/ports, addresses and error text, but do not include dump byte buffers or save files. Users choose whether to export/share reports.
+- JSON/XML are bounded; XML external entities/DTDs are disabled. Fixed byte formats are strictly validated, with malformed/extended commands rejected rather than silently repaired. There is no trainer script execution.
+- Scans/reads/results/timeouts are bounded and cancellable. Socket failures/cancellation discard potentially desynchronized streams. Logs rotate and in-memory logs are bounded.
+
+Unsigned Windows packages have no publisher attestation. Verify the release checksum, source and workflow provenance. Automatic tests are artificial; follow HARDWARE-CHECKLIST.md before considering any production-readiness claim.

@@ -1,0 +1,22 @@
+{
+  "Name": "relative-multiline",
+  "SimulatedOnly": true,
+  "Base": "400000",
+  "TargetHex": "CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC8943604883C408CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC000000000000000000000000CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC",
+  "Patches": [
+    {
+      "Id": "hook",
+      "Offset": "100",
+      "Original": "8943604883C408",
+      "Replacement": "E9FB0000009090"
+    },
+    {
+      "Id": "cave",
+      "Offset": "200",
+      "Original": "000000000000000000000000",
+      "Replacement": "8943604883C408E9FBFEFFFF"
+    }
+  ],
+  "ExpectedTestable": true,
+  "ExpectedMatches": 2
+}

@@ -1,0 +1,13 @@
+<Project>
+  <PropertyGroup>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+    <Deterministic>true</Deterministic>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+    <!-- Command-line publish RIDs/single-file settings also flow to library references.
+         Keep those transient restore graphs out of the canonical development locks. -->
+    <NuGetLockFilePath Condition="'$(StudioPublish)' == 'true'">$(MSBuildProjectDirectory)/obj/publish.packages.lock.json</NuGetLockFilePath>
+  </PropertyGroup>
+</Project>
