@@ -131,6 +131,8 @@ public static class PortingEngine
     {
         var candidates = new List<PortCandidate>(); var warnings = new List<string>();
         var chosen = new Dictionary<string, PortCandidate>();
+        if (instructionPatch && cheat.Patches.Select(p => p.Section).Distinct().Count() > 1)
+            warnings.Add("Source patches use different SHN sections. Resolve their original section bases before recalculating cross-section branches; section-relative offsets alone are insufficient.");
         foreach (var patch in cheat.Patches)
         {
             ct.ThrowIfCancellationRequested();

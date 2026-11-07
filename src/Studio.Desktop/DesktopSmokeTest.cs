@@ -57,7 +57,7 @@ public static class DesktopSmokeTest
             await Execute(vm, vm.RollbackCommand); Require(vm.VerificationStatus.Contains("restored"), "Rollback reads original bytes back.");
             result.Add("PASS exact-byte review, patch/readback, rollback/readback");
             await Execute(vm, vm.ExportCommand); Require(File.Exists(Path.Combine(output, "trainer.json")), "Candidate trainer exported.");
-            var trainer = TrainerCodec.Read(Path.Combine(output, "trainer.json")); Require(trainer.Version == "01.05", "Export uses target version.");
+            var trainer = TrainerCodec.Read(Path.Combine(output, "trainer.json")); Require(trainer.Version == "01.05" && trainer.Cheats[0].Patches[0].Offset == 0x2800, "Export uses the target version and main-module-relative offset.");
             await Execute(vm, vm.ExportDiagnosticsCommand); Require(File.Exists(Path.Combine(output, "diagnostics.json")), "Diagnostics report exported.");
             result.Add("PASS candidate trainer and diagnostics exports");
             await app.Dispatcher.InvokeAsync(() => { }, DispatcherPriority.ContextIdle);

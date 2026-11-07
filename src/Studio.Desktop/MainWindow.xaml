@@ -42,6 +42,7 @@
           </StackPanel></ScrollViewer></TabItem>
           <TabItem Header="5  Export"><ScrollViewer VerticalScrollBarVisibility="Auto"><StackPanel>
             <TextBlock Text="Export with an honest test record" Style="{StaticResource Heading}"/><TextBlock Text="{Binding VerificationStatus}" FontSize="18" Margin="0,10,0,20"/><TextBlock Text="GoldHEN JSON and SHN exports include the target version and original rollback bytes. A separate verification sidecar records the evidence. Unverified output uses a .candidate filename and is never installed automatically." Style="{StaticResource Muted}"/>
+            <TextBlock Text="GoldHEN main-module base (hexadecimal)"/><TextBox Text="{Binding ModuleBase, UpdateSourceTrigger=PropertyChanged}" Width="300" HorizontalAlignment="Left"/><TextBlock Text="Defaults to the lowest mapped address. Verify the eboot.bin module base; for a partial offline dump it can be lower than the dump's starting address. Export offsets are calculated from this base." Style="{StaticResource Muted}"/>
             <Button Content="Export target trainer…" Command="{Binding ExportCommand}" Style="{StaticResource Primary}" HorizontalAlignment="Left"/>
             <GroupBox Header="When you return to your PS4"><TextBlock Text="After a real gameplay test, use the exact name CUSAxxxxx_XX.YY.json (or .shn). Transfer the file to /user/data/GoldHEN/cheats/json/ or /user/data/GoldHEN/cheats/shn/ using your FTP client. Only one format per title/version should be installed. The default FTP port is 2121. Keep the verification sidecar on your PC."/></GroupBox>
             <TextBlock Text="No verified Silksong 01.05 Infinite Health cheat is bundled. The supplied old-version bytes and synthetic examples are references for analysis, not a claim of a working patch." Foreground="#FFD487"/>
@@ -90,6 +91,6 @@
       </TabControl></TabItem>
     </TabControl>
     <Border Grid.Row="3" Background="#4A2930" Padding="12" Margin="0,10,0,0"><Border.Style><Style TargetType="Border"><Setter Property="Visibility" Value="Visible"/><Style.Triggers><DataTrigger Binding="{Binding ErrorMessage}" Value=""><Setter Property="Visibility" Value="Collapsed"/></DataTrigger></Style.Triggers></Style></Border.Style><TextBlock Text="{Binding ErrorMessage}" Foreground="#FFD8D3"/></Border>
-    <DockPanel Grid.Row="4" Margin="0,12,0,0"><Button DockPanel.Dock="Right" Content="Cancel current operation" Command="{Binding CancelCommand}" Padding="12,6"/><ProgressBar DockPanel.Dock="Right" Width="120" Height="5" Value="{Binding Progress}" Maximum="100" Margin="10"/><TextBlock Text="{Binding Status}" Foreground="{StaticResource MutedBrush}" FontSize="13"/></DockPanel>
+    <DockPanel Grid.Row="4" Margin="0,12,0,0"><Button DockPanel.Dock="Right" Content="Cancel current operation" Command="{Binding CancelCommand}" Padding="12,6"/><ProgressBar DockPanel.Dock="Right" Width="120" Height="5" Value="{Binding Progress, Mode=OneWay}" Maximum="100" Margin="10"/><TextBlock Text="{Binding Status}" Foreground="{StaticResource MutedBrush}" FontSize="13"/></DockPanel>
   </Grid>
 </Window>

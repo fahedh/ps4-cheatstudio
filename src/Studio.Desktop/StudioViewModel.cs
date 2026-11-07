@@ -67,6 +67,8 @@ public sealed partial class StudioViewModel : Observable, IAsyncDisposable
     public string ProfileTitle { get => profileTitle; set => Set(ref profileTitle, value); }
     private string scanBudget = "256";
     public string ScanBudget { get => scanBudget; set => Set(ref scanBudget, value); }
+    private string moduleBase = "400000";
+    public string ModuleBase { get => moduleBase; set => Set(ref moduleBase, value); }
     private int guidedStep, setupStep;
     public int GuidedStep { get => guidedStep; set => Set(ref guidedStep, value); }
     public int SetupStep { get => setupStep; private set { Set(ref setupStep, value); Changed(nameof(SetupHeading)); Changed(nameof(SetupDescription)); Changed(nameof(SetupNextText)); } }
@@ -234,6 +236,7 @@ public sealed partial class StudioViewModel : Observable, IAsyncDisposable
         Regions.Clear();
         if (game.Pid > 0) foreach (var r in await client.GetMapsAsync(game.Pid, ct)) Regions.Add(r);
         SelectedRegion = Regions.FirstOrDefault(r => r.Executable && r.Readable) ?? Regions.FirstOrDefault();
+        if (Regions.Count > 0) ModuleBase = Regions.Min(r => r.Start).ToString("X");
         TargetVersion = game.Version; ProfileTitle = game.TitleId;
         if (!game.IsGame) Status = "No supported foreground game detected. Start a game and reconnect.";
         RefreshLabels();
@@ -351,8 +354,14 @@ public sealed partial class StudioViewModel : Observable, IAsyncDisposable
     {
         if (SelectedTrainer is null || SelectedCheat is null || port?.CanTest != true) throw new InvalidOperationException("No exportable candidate trainer.");
         // GoldHEN JSON offsets are relative to the lowest mapped main-module address, not a section index.
-        var moduleBase = Regions.Min(r => r.Start);
-        var lines = Proposed.Select(p => { var region = Regions.Single(r => r.Index == p.Section); return p with { Section = 0, Offset = checked(region.Start + p.Offset - moduleBase), Absolute = false }; }).ToList();
+        var baseAddress = Hex.Address(ModuleBase);
+        if (offlineDump is null && !Regions.Any(r => r.Start == baseAddress)) throw new InvalidDataException("The live main-module base must match a mapped region start. Verify the eboot.bin mapping.");
+        var lines = Proposed.Select(p =>
+        {
+            var region = Regions.Single(r => r.Index == p.Section); var address = checked(region.Start + p.Offset);
+            if (address < baseAddress) throw new InvalidDataException("A patch is below the chosen main-module base. Correct the export mapping.");
+            return p with { Section = 0, Offset = address - baseAddress, Absolute = false };
+        }).ToList();
         return SelectedTrainer with { Version = TargetVersion, Cheats = [new(SelectedCheat.Name, SelectedCheat.Description + (hardwareConfirmed ? " [User-confirmed hardware test recorded locally]" : " [UNVERIFIED CANDIDATE: requires gameplay validation]"), lines)] };
     }
     private async Task ExportAsync(CancellationToken ct)
@@ -360,9 +369,9 @@ public sealed partial class StudioViewModel : Observable, IAsyncDisposable
         var trainer = ExportTrainer(); var suffix = hardwareConfirmed ? "" : ".candidate";
         var path = dialogs.Save("Export trainer — " + (hardwareConfirmed ? "user-confirmed hardware test" : "UNVERIFIED candidate"), $"{trainer.TitleId}_{trainer.Version}{suffix}.json", "GoldHEN JSON|*.json|GoldHEN SHN|*.shn");
         if (path is null) return;
-        if (!SimulationConnection && !dialogs.Confirm("Confirm GoldHEN module mapping", $"Export uses 0x{Regions.Min(r => r.Start):X} as the main-module base (the lowest mapped address in this capture). Confirm this against the eboot.bin mapping before installing the trainer. Section indices are not stable identifiers. Export this mapping?")) return;
+        if (!SimulationConnection && !dialogs.Confirm("Confirm GoldHEN module mapping", $"Export uses 0x{Hex.Address(ModuleBase):X} as the main-module base. Confirm this against the original eboot.bin process mapping, especially for a partial offline dump. You can edit it in the Export step. Section indices are not stable identifiers. Export this mapping?")) return;
         await File.WriteAllTextAsync(path, Path.GetExtension(path).Equals(".shn", StringComparison.OrdinalIgnoreCase) ? TrainerCodec.Shn(trainer) : TrainerCodec.Json(trainer), new UTF8Encoding(false), ct);
-        await LocalStore.SaveAsync(path + ".verification.json", new { simulation = SimulationConnection, offline = offlineDump is not null, hardwareConfirmedByUser = hardwareConfirmed, candidates = Candidates.ToList(), records = Verifications.ToList(), moduleBase = $"0x{Regions.Min(r => r.Start):X}", warning = "Generated output is not automatically verified. Confirm main-module base and section interpretation on hardware before installation." }, ct);
+        await LocalStore.SaveAsync(path + ".verification.json", new { simulation = SimulationConnection, offline = offlineDump is not null, hardwareConfirmedByUser = hardwareConfirmed, candidates = Candidates.ToList(), records = Verifications.ToList(), moduleBase = $"0x{Hex.Address(ModuleBase):X}", warning = "Generated output is not automatically verified. Confirm main-module base and section interpretation on hardware before installation." }, ct);
         Status = "Trainer and verification sidecar exported. " + (hardwareConfirmed ? "Use the titleid_version filename in GoldHEN's cheats folder." : "Candidate filename intentionally includes .candidate; do not install until validated."); log.Write("Export", Status);
     }
     private async Task ExportSourceAsync(CancellationToken ct)
@@ -406,7 +415,7 @@ public sealed partial class StudioViewModel : Observable, IAsyncDisposable
         var path = dialogs.Open("Analyze a local raw memory dump (maximum 64 MiB)", "Raw memory|*.bin;*.dump|All files|*.*"); if (path is null) return;
         var length = new FileInfo(path).Length; if (length is < 1 or > MemoryScanner.MaximumBytes) throw new InvalidDataException("Select a 1-byte to 64-MiB raw dump.");
         var start = Hex.Address(DumpBase); if (start > ulong.MaxValue - (ulong)length) throw new InvalidDataException("Dump base overflows the address space.");
-        await DisconnectAsync(); offlineDump = await File.ReadAllBytesAsync(path, ct); Regions.Clear(); Regions.Add(new(0, start, start + (ulong)length, 0, 5, "Offline dump")); SelectedRegion = Regions[0];
+        await DisconnectAsync(); offlineDump = await File.ReadAllBytesAsync(path, ct); Regions.Clear(); Regions.Add(new(0, start, start + (ulong)length, 0, 5, "Offline dump")); SelectedRegion = Regions[0]; ModuleBase = start.ToString("X");
         ResetAnalysis(); RefreshLabels(); Status = "Local dump loaded. Set the target version, select a trainer, then analyze. Live testing is disabled."; GuidedStep = 2;
     }
     public async ValueTask DisposeAsync() { operation?.Cancel(); await DisconnectAsync(); await client.DisposeAsync(); }

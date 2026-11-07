@@ -24,7 +24,7 @@ Only a live-PS4 byte test followed by **I tested it on my real PS4** can record 
 
 ## Export and install
 
-Export selects JSON or SHN, uses the target version and emits an adjacent `.verification.json` file. Unconfirmed results default to `CUSAxxxxx_XX.YY.candidate.json`; do not install these blindly. The sidecar records simulation/offline status, candidates and observations. On live/offline export, confirm the computed lowest-address main-module base; verify it against the eboot mapping first. Section indices are not stable IDs.
+Export selects JSON or SHN, uses the target version and emits an adjacent `.verification.json` file. Unconfirmed results default to `CUSAxxxxx_XX.YY.candidate.json`; do not install these blindly. The sidecar records simulation/offline status, candidates and observations. In the Export step, verify or edit the main-module base (default: lowest mapped address). A partial offline dump may start above the actual module base. Confirm the value against the original eboot mapping before exporting. Section indices are not stable IDs.
 
 After real gameplay validation, use the exact GoldHEN filename `CUSAxxxxx_XX.YY.json` or `.shn`. Transfer it using your FTP client to `/user/data/GoldHEN/cheats/json/` or `/user/data/GoldHEN/cheats/shn/`. Install only one format per title/version. No FTP transfer, payload injection or trainer activation happens automatically. Keep the sidecar on the PC.
 

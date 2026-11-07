@@ -3,7 +3,7 @@
 Initial cloud implementation, 7 November 2026.
 
 - .NET SDK **10.0.403**, obtained from Microsoft's official build distribution with a verified SHA-512 release-metadata checksum.
-- **100 / 100 automated tests passed**, zero failed and zero skipped on the Linux cloud executor. Test evidence is generated under `artifacts/test-results/core.trx`; tests execute real loopback TCP traffic against artificial memory. This is not hardware validation.
+- **101 / 101 automated tests passed**, zero failed and zero skipped on the Linux cloud executor. Test evidence is generated under `artifacts/test-results/core.trx`; tests execute real loopback TCP traffic against artificial memory. This is not hardware validation.
 - Full solution **Release build succeeded**, **0 warnings, 0 errors**. WPF was cross-compiled for `net10.0-windows/win-x64`; the application has not been launched on this Linux executor.
 - Desktop and standalone simulator **self-contained win-x64 publish succeeded**. Portable packaging checks the PE machine type and ZIP integrity, includes guides/examples/notices, and generates a SHA-256 checksum.
 - Canonical NuGet locks restored in locked mode. Runtime-specific publish graphs use separate ignored lock files so publishing does not corrupt the development locks.

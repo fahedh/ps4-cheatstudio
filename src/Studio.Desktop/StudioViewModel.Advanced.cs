@@ -109,7 +109,7 @@ public sealed partial class StudioViewModel
         {
             if (game is null || Regions.Count == 0) throw new InvalidOperationException("Connect to a game before creating a new trainer.");
             var original = Hex.Bytes(ManualOriginal); var replacement = Hex.Bytes(ManualReplacement); var address = Hex.Address(ManualAddress);
-            var moduleBase = Regions.Min(r => r.Start);
+            var moduleBase = Hex.Address(ModuleBase);
             if (address < moduleBase || !Regions.Any(r => r.Contains(address, original.Length))) throw new InvalidDataException("The patch must be inside the selected game's mapped memory.");
             ImportTrainer(new(ProfileName, game.TitleId, game.Version, game.ProcessName, [new("New manual cheat", "User-authored unverified patch. Verify the main-module base and gameplay behavior.", [new("manual", 0, address - moduleBase, original, replacement, [])])]));
             await SaveLibraryAsync(ct); Status = "Manual cheat saved to the library as unverified. Analyze before testing or exporting.";

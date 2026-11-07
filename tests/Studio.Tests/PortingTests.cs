@@ -60,4 +60,11 @@ public class PortingTests
         var bytes = Hex.Bytes("8943604883C408CC"); var cheat = new Cheat("test", "", [new("p", 0, 0x100, bytes[..7], Hex.Bytes("90909090909090"), [])]);
         var result = PortingEngine.AnalyzeSegments(cheat, [(new(0, 0x400000, 0x400008, 0, 5, "a"), bytes), (new(0, 0x400000, 0x400008, 0, 5, "a"), bytes)], true); Assert.True(result.CanTest); Assert.Single(result.Candidates);
     }
+    [Fact] public void DifferentSourceSectionsRequireAnExplicitOriginalBaseMapping()
+    {
+        var bytes = Hex.Bytes("8943604883C408CC9090909090CC");
+        var cheat = new Cheat("test", "", [new("a", 14, 0x100, bytes[..7], Hex.Bytes("90909090909090"), []), new("b", 17, 0x200, bytes[8..13], Hex.Bytes("9090909090"), [])]);
+        var result = PortingEngine.AnalyzeSegments(cheat, [(new(0, 0x400000, 0x40000E, 0, 5, "code"), bytes)], true);
+        Assert.False(result.CanTest); Assert.Contains(result.Warnings, w => w.Contains("original section bases"));
+    }
 }
