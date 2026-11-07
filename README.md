@@ -11,6 +11,8 @@ The primary interface is a first-launch setup wizard followed by **Connect → C
 3. Extract the artifact, then extract `PS4GoldHENCheatStudio-win-x64.zip` into a writable folder.
 4. Run **PS4GoldHENCheatStudio.exe**. No Visual Studio or .NET installation is required. Windows 10/11 x64 is the intended platform. The executable is unsigned.
 
+**Tested milestone:** [download from successful Windows build 42416122668](https://github.com/fahedh/PS-AICheatsCreator/actions/runs/42416122668). Its published executable passed the automated first-launch and guided simulator workflow on Windows. See [validation evidence](docs/VALIDATION.md).
+
 Version tags (`v*`) also publish a prerelease ZIP and SHA-256 checksum to [Releases](https://github.com/fahedh/PS-AICheatsCreator/releases) after Windows tests and WPF launch checks pass. A workflow file in source alone does not mean an artifact has been published: check that a run succeeded.
 
 ## Try it without a PS4
