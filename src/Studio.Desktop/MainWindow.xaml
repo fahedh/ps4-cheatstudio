@@ -1,19 +1,38 @@
 <Window x:Class="Studio.Desktop.MainWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:local="clr-namespace:Studio.Desktop" Title="PS4 GoldHEN Cheat Studio" Width="1300" Height="930" MinWidth="1000" MinHeight="720" WindowStartupLocation="CenterScreen">
   <Grid Margin="24,18"><Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
-    <DockPanel Margin="0,0,0,18">
-      <StackPanel DockPanel.Dock="Right" HorizontalAlignment="Right"><TextBlock Text="{Binding ConnectionLabel}" Foreground="{StaticResource AccentBrush}" FontWeight="Bold" HorizontalAlignment="Right"/><CheckBox Content="Advanced Mode" IsChecked="{Binding AdvancedMode}" HorizontalAlignment="Right"/></StackPanel>
-      <StackPanel><TextBlock Text="GOLDHEN" FontWeight="Bold" FontSize="13" Foreground="{StaticResource AccentBrush}"/><TextBlock Text="Cheat Studio" FontSize="31" FontWeight="SemiBold"/><TextBlock Text="Find a candidate. Understand the changes. Test with a way back." Foreground="{StaticResource MutedBrush}"/></StackPanel>
+    <DockPanel Margin="0,0,0,16">
+      <CheckBox DockPanel.Dock="Right" Content="Advanced mode" IsChecked="{Binding AdvancedMode}" VerticalAlignment="Center"/>
+      <StackPanel Orientation="Horizontal">
+        <Border Width="36" Height="36" Background="{StaticResource AccentBrush}" CornerRadius="8" Margin="0,0,12,0">
+          <TextBlock Text="&#xE7FC;" FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets" FontSize="20" Foreground="White" HorizontalAlignment="Center"/>
+        </Border>
+        <TextBlock Text="PS4 Cheat Studio" FontSize="24" FontWeight="SemiBold"/>
+      </StackPanel>
     </DockPanel>
-    <Border Grid.Row="1" Background="{StaticResource SurfaceBrush}" CornerRadius="8" Padding="16" Margin="0,0,0,16">
-      <DockPanel><CheckBox DockPanel.Dock="Right" Content="Enable explicit write testing" IsChecked="{Binding WritesEnabled}" ToolTip="Each write still requires a separate exact-byte review and confirmation."/><StackPanel><TextBlock Text="{Binding GameLabel}" FontSize="17" FontWeight="SemiBold"/><TextBlock Text="{Binding DebuggerLabel}" Foreground="{StaticResource MutedBrush}" FontSize="12"/></StackPanel></DockPanel>
+    <Border Grid.Row="1" Background="White" BorderBrush="#CAD3DF" BorderThickness="1" CornerRadius="8" Padding="16,10" Margin="0,0,0,18">
+      <DockPanel>
+        <CheckBox DockPanel.Dock="Right" Content="Enable write testing" IsChecked="{Binding WritesEnabled}" ToolTip="Each write requires a separate byte review and confirmation."/>
+        <Border DockPanel.Dock="Left" Background="#E8F0FA" CornerRadius="4" Padding="10,5" VerticalAlignment="Center" Margin="0,0,16,0">
+          <TextBlock Text="{Binding ConnectionLabel}" Foreground="#174F83" FontWeight="SemiBold" FontSize="12"/>
+        </Border>
+        <StackPanel><TextBlock Text="{Binding GameLabel}" FontSize="16" FontWeight="SemiBold"/><TextBlock Text="{Binding DebuggerLabel}" Foreground="{StaticResource MutedBrush}" FontSize="12"/></StackPanel>
+      </DockPanel>
     </Border>
-    <TabControl Grid.Row="2" x:Name="WorkspaceTabs" SelectedIndex="{Binding WorkspaceIndex}">
-      <TabItem Header="Guided porting">
+    <TabControl Grid.Row="2" x:Name="WorkspaceTabs" SelectedIndex="{Binding WorkspaceIndex}" TabStripPlacement="Left" Background="Transparent" Padding="0">
+      <TabControl.Template><ControlTemplate TargetType="TabControl">
+        <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+          <TabPanel IsItemsHost="True" VerticalAlignment="Top" KeyboardNavigation.TabNavigation="Once"/>
+          <Border Grid.Column="1" Background="White" CornerRadius="8" BorderThickness="1" BorderBrush="#CAD3DF" Padding="14">
+            <ContentPresenter x:Name="PART_SelectedContentHost" ContentSource="SelectedContent"/>
+          </Border>
+        </Grid>
+      </ControlTemplate></TabControl.Template>
+      <TabItem Style="{StaticResource NavigationItem}" Tag="&#xE768;" Header="Guided porting">
         <TabControl SelectedIndex="{Binding GuidedStep}" Padding="20">
           <TabItem Header="1  Connect"><ScrollViewer VerticalScrollBarVisibility="Auto"><Grid><Grid.ColumnDefinitions><ColumnDefinition Width="3*"/><ColumnDefinition Width="2*"/></Grid.ColumnDefinitions>
             <StackPanel Margin="0,0,30,0"><TextBlock Text="Connect your PS4" Style="{StaticResource Heading}"/><TextBlock Text="Enable the GoldHEN payload loader, start your game, then connect." Style="{StaticResource Muted}"/><local:ConnectionPanel/>
             <GroupBox Header="Working without a console?"><StackPanel><TextBlock Text="The local simulator supports the entire connect → import → analyze → write/readback → rollback flow. It cannot verify gameplay or a real Silksong patch."/><Button Content="Load the synthetic demo trainer" Command="{Binding DemoTrainerCommand}" HorizontalAlignment="Left"/></StackPanel></GroupBox></StackPanel>
-            <StackPanel Grid.Column="1"><TextBlock Text="Recent sessions" FontSize="20" FontWeight="SemiBold" Margin="0,0,0,15"/><ListBox ItemsSource="{Binding Recent}" MaxHeight="350"><ListBox.ItemTemplate><DataTemplate><StackPanel><TextBlock Text="{Binding TitleId}" FontWeight="Bold"/><TextBlock Text="{Binding Version}"/><TextBlock Text="{Binding Mode}" Foreground="#70D8C4"/><TextBlock Text="{Binding Time, StringFormat={}{0:g}}" FontSize="12"/></StackPanel></DataTemplate></ListBox.ItemTemplate></ListBox>
+            <StackPanel Grid.Column="1"><TextBlock Text="Recent sessions" FontSize="20" FontWeight="SemiBold" Margin="0,0,0,15"/><ListBox ItemsSource="{Binding Recent}" MaxHeight="350"><ListBox.ItemTemplate><DataTemplate><StackPanel><TextBlock Text="{Binding TitleId}" FontWeight="Bold"/><TextBlock Text="{Binding Version}"/><TextBlock Text="{Binding Mode}" Foreground="#005FB8"/><TextBlock Text="{Binding Time, StringFormat={}{0:g}}" FontSize="12"/></StackPanel></DataTemplate></ListBox.ItemTemplate></ListBox>
             <TextBlock Text="Game memory starts in read-only mode." Style="{StaticResource Muted}" Margin="0,20"/></StackPanel>
           </Grid></ScrollViewer></TabItem>
           <TabItem Header="2  Choose trainer"><ScrollViewer VerticalScrollBarVisibility="Auto"><StackPanel>
@@ -26,9 +45,9 @@
             <Button Content="Search target game for candidates" Command="{Binding AnalyzeCommand}" Style="{StaticResource Primary}" HorizontalAlignment="Left"/>
           </StackPanel></ScrollViewer></TabItem>
           <TabItem Header="3  Analyze"><Grid><Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
-            <StackPanel><TextBlock Text="Understand what was found" Style="{StaticResource Heading}"/><TextBlock Text="The search checks readable code regions automatically. Scores measure byte and instruction evidence, not the probability that a cheat works. Function equivalence remains unproven." Style="{StaticResource Muted}"/>
-            <WrapPanel><StackPanel><TextBlock Text="Target version (detected on a live PS4)"/><TextBox Text="{Binding TargetVersion, UpdateSourceTrigger=PropertyChanged}" Width="230" IsReadOnly="{Binding Connected}"/></StackPanel><Button Content="Analyze again" Command="{Binding AnalyzeCommand}" Style="{StaticResource Primary}" VerticalAlignment="Center"/></WrapPanel></StackPanel>
-            <Border Grid.Row="1" Background="#233C42" Padding="16" CornerRadius="6" Margin="0,8,0,15"><TextBlock Text="{Binding AnalysisSummary}"/></Border>
+            <StackPanel><TextBlock Text="Analysis results" Style="{StaticResource Heading}"/><TextBlock Text="Compare matching bytes, instructions and nearby trainer signatures before selecting a candidate." Style="{StaticResource Muted}"/>
+            <WrapPanel><StackPanel><TextBlock Text="Target game version"/><TextBox Text="{Binding TargetVersion, UpdateSourceTrigger=PropertyChanged}" Width="230" IsReadOnly="{Binding Connected}"/></StackPanel><Button Content="Analyze again" Command="{Binding AnalyzeCommand}" Style="{StaticResource Primary}" VerticalAlignment="Center"/></WrapPanel></StackPanel>
+            <Border Grid.Row="1" Background="#E8F0FA" Padding="16" CornerRadius="6" Margin="0,8,0,15"><TextBlock Text="{Binding AnalysisSummary}"/></Border>
             <DataGrid Grid.Row="2" ItemsSource="{Binding Candidates}" SelectedItem="{Binding SelectedPortCandidate}"><DataGrid.Columns><DataGridTextColumn Header="Line" Binding="{Binding PatchId}" Width="95"/><DataGridTextColumn Header="Address" Binding="{Binding AddressHex}" Width="145"/><DataGridTextColumn Header="Evidence / 100" Binding="{Binding Score}" Width="110"/><DataGridTextColumn Header="Why this is a candidate" Binding="{Binding Explanation}" Width="*"><DataGridTextColumn.ElementStyle><Style TargetType="TextBlock"><Setter Property="TextWrapping" Value="Wrap"/><Setter Property="Padding" Value="6"/></Style></DataGridTextColumn.ElementStyle></DataGridTextColumn></DataGrid.Columns></DataGrid>
             <ScrollViewer Grid.Row="3" MaxHeight="250" VerticalScrollBarVisibility="Auto"><StackPanel>
               <WrapPanel><Button Content="Inspect in editor" Command="{Binding InspectCandidateCommand}"/><Button Content="Choose reviewed exact candidate…" Command="{Binding ChooseCandidateCommand}"/><Button Content="Review selected cave…" Command="{Binding ReviewCaveCommand}"/><Button Content="Open advanced tools" Command="{Binding OpenMemoryToolsCommand}"/></WrapPanel>
@@ -44,7 +63,7 @@
             </StackPanel></ScrollViewer>
           </Grid></TabItem>
           <TabItem Header="4  Test"><ScrollViewer VerticalScrollBarVisibility="Auto"><StackPanel>
-            <TextBlock Text="Review, test, and keep a way back" Style="{StaticResource Heading}"/><TextBlock Text="Back up your saves first. The app checks the game/version, mapped region and original bytes again before writing. A running game can still change memory during a test; multi-line writes are not atomic." Foreground="#FFD487" Margin="0,0,0,18"/>
+            <TextBlock Text="Review, test, and keep a way back" Style="{StaticResource Heading}"/><TextBlock Text="Back up your saves first. The app checks the game/version, mapped region and original bytes again before writing. A running game can still change memory during a test; multi-line writes are not atomic." Foreground="#795000" Margin="0,0,0,18"/>
             <DataGrid ItemsSource="{Binding Proposed}" MinHeight="180" MaxHeight="320"><DataGrid.Columns><DataGridTextColumn Header="Line" Binding="{Binding Id}" Width="100"/><DataGridTextColumn Header="Target section" Binding="{Binding Section}" Width="110"/><DataGridTextColumn Header="Section offset" Binding="{Binding OffsetHex}" Width="140"/><DataGridTextColumn Header="Expected original bytes" Binding="{Binding OriginalHex}" Width="*"/><DataGridTextColumn Header="Replacement bytes" Binding="{Binding ReplacementHex}" Width="*"/></DataGrid.Columns></DataGrid>
             <TextBlock Text="{Binding VerificationStatus}" FontWeight="SemiBold" Margin="0,20" Foreground="{StaticResource AccentBrush}"/>
             <WrapPanel><Button Content="Review and test candidate…" Command="{Binding TestCommand}" Style="{StaticResource Primary}"/><Button Content="Restore original bytes…" Command="{Binding RollbackCommand}"/><Button Content="I tested it on my real PS4…" Command="{Binding ConfirmWorkingCommand}"/></WrapPanel>
@@ -56,11 +75,11 @@
             <TextBlock Text="GoldHEN main-module base (hexadecimal)"/><TextBox Text="{Binding ModuleBase, UpdateSourceTrigger=PropertyChanged}" Width="300" HorizontalAlignment="Left"/><TextBlock Text="Defaults to the lowest mapped address. Verify the eboot.bin module base; for a partial offline dump it can be lower than the dump's starting address. Export offsets are calculated from this base." Style="{StaticResource Muted}"/>
             <Button Content="Export target trainer…" Command="{Binding ExportCommand}" Style="{StaticResource Primary}" HorizontalAlignment="Left"/>
             <GroupBox Header="When you return to your PS4"><TextBlock Text="After a real gameplay test, use the exact name CUSAxxxxx_XX.YY.json (or .shn). Transfer the file to /user/data/GoldHEN/cheats/json/ or /user/data/GoldHEN/cheats/shn/ using your FTP client. Only one format per title/version should be installed. The default FTP port is 2121. Keep the verification sidecar on your PC."/></GroupBox>
-            <TextBlock Text="No verified Silksong 01.05 Infinite Health cheat is bundled. The supplied old-version bytes and synthetic examples are references for analysis, not a claim of a working patch." Foreground="#FFD487"/>
+            <TextBlock Text="No verified Silksong 01.05 Infinite Health cheat is bundled. The supplied old-version bytes and synthetic examples are references for analysis, not a claim of a working patch." Foreground="#795000"/>
           </StackPanel></ScrollViewer></TabItem>
         </TabControl>
       </TabItem>
-      <TabItem Header="Library &amp; profiles"><ScrollViewer VerticalScrollBarVisibility="Auto"><StackPanel>
+      <TabItem Style="{StaticResource NavigationItem}" Tag="&#xE8F1;" Header="Library &amp; profiles"><ScrollViewer VerticalScrollBarVisibility="Auto"><StackPanel>
         <TextBlock Text="Your local cheat library" Style="{StaticResource Heading}"/><WrapPanel><Button Content="Import trainer…" Command="{Binding ImportCommand}" Style="{StaticResource Primary}"/><Button Content="Export imported trainer…" Command="{Binding ExportSourceCommand}"/><Button Content="Compare versions…" Command="{Binding CompareVersionsCommand}"/><Button Content="Remove from library" Command="{Binding RemoveTrainerCommand}"/></WrapPanel>
         <ComboBox ItemsSource="{Binding Library}" SelectedItem="{Binding SelectedTrainer}" DisplayMemberPath="Name" IsEnabled="{Binding IsIdle}"/><TextBlock Text="{Binding TrainerDetails}" Style="{StaticResource Muted}"/>
         <ListBox ItemsSource="{Binding Cheats}" SelectedItem="{Binding SelectedCheat}" DisplayMemberPath="Name" Height="120" IsEnabled="{Binding IsIdle}"/>
@@ -69,13 +88,13 @@
         <GroupBox Header="Reusable game profile"><StackPanel><UniformGrid Columns="3"><StackPanel><TextBlock Text="Game name"/><TextBox Text="{Binding ProfileName, UpdateSourceTrigger=PropertyChanged}"/></StackPanel><StackPanel><TextBlock Text="Title ID"/><TextBox Text="{Binding ProfileTitle, UpdateSourceTrigger=PropertyChanged}"/></StackPanel><StackPanel><TextBlock Text="Target version"/><TextBox Text="{Binding TargetVersion, UpdateSourceTrigger=PropertyChanged}" IsReadOnly="{Binding Connected}"/></StackPanel></UniformGrid>
         <WrapPanel><Button Content="Save profile…" Command="{Binding SaveProfileCommand}"/><Button Content="Open profile…" Command="{Binding LoadProfileCommand}"/></WrapPanel><TextBlock Text="Profiles store trainers, memory-section metadata, candidates, scan metadata and verification records locally. Opening one never trusts saved addresses for live patching." Style="{StaticResource Muted}"/></StackPanel></GroupBox>
       </StackPanel></ScrollViewer></TabItem>
-      <TabItem Header="Cheat editor"><local:CheatEditorPanel/></TabItem>
-      <TabItem Header="Diagnostics"><Grid><Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="2*"/><RowDefinition Height="3*"/></Grid.RowDefinitions>
+      <TabItem Style="{StaticResource NavigationItem}" Tag="&#xE70F;" Header="Cheat editor"><local:CheatEditorPanel/></TabItem>
+      <TabItem Style="{StaticResource NavigationItem}" Tag="&#xE9D9;" Header="Diagnostics"><Grid><Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="2*"/><RowDefinition Height="3*"/></Grid.RowDefinitions>
         <TextBlock Text="An automatic, read-only health check" Style="{StaticResource Heading}"/><WrapPanel Grid.Row="1"><Button Content="Run diagnostics" Command="{Binding DiagnosticsCommand}" Style="{StaticResource Primary}"/><Button Content="Export troubleshooting report…" Command="{Binding ExportDiagnosticsCommand}"/></WrapPanel>
         <TextBox Grid.Row="2" Text="{Binding DiagnosticText, Mode=OneWay}" IsReadOnly="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto"/>
         <DataGrid Grid.Row="3" ItemsSource="{Binding Logs}"><DataGrid.Columns><DataGridTextColumn Header="Time" Binding="{Binding Time, StringFormat={}{0:HH:mm:ss}}" Width="90"/><DataGridTextColumn Header="Level" Binding="{Binding Level}" Width="100"/><DataGridTextColumn Header="Operation" Binding="{Binding Operation}" Width="130"/><DataGridTextColumn Header="Message" Binding="{Binding Message}" Width="*"/></DataGrid.Columns></DataGrid>
       </Grid></TabItem>
-      <TabItem Header="Advanced" Visibility="{Binding AdvancedMode, Converter={StaticResource BoolVisibility}}"><TabControl>
+      <TabItem Style="{StaticResource NavigationItem}" Tag="&#xE713;" Header="Advanced" Visibility="{Binding AdvancedMode, Converter={StaticResource BoolVisibility}}"><TabControl>
         <TabItem Header="Processes"><Grid><Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition/><RowDefinition Height="2*"/></Grid.RowDefinitions><Button Content="Refresh game and processes" Command="{Binding RefreshCommand}" HorizontalAlignment="Left"/><DataGrid Grid.Row="1" ItemsSource="{Binding Processes}" Margin="0,10"><DataGrid.Columns><DataGridTextColumn Header="PID" Binding="{Binding Pid}" Width="100"/><DataGridTextColumn Header="Process" Binding="{Binding Name}" Width="*"/></DataGrid.Columns></DataGrid>
         <DataGrid Grid.Row="2" ItemsSource="{Binding Regions}" SelectedItem="{Binding SelectedRegion}"><DataGrid.Columns><DataGridTextColumn Header="Index" Binding="{Binding Index}" Width="80"/><DataGridTextColumn Header="Start" Binding="{Binding Address}" Width="160"/><DataGridTextColumn Header="Bytes" Binding="{Binding Size}" Width="130"/><DataGridTextColumn Header="Permissions" Binding="{Binding Permissions}" Width="100"/><DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="*"/></DataGrid.Columns></DataGrid></Grid></TabItem>
         <TabItem Header="Scanner"><Grid><Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition/><RowDefinition Height="Auto"/></Grid.RowDefinitions><StackPanel>
@@ -95,14 +114,26 @@
           <WrapPanel><Button Content="Build NOP patch" Command="{Binding NopCommand}"/><Button Content="Build rel32 jump" Command="{Binding JumpCommand}"/><Button Content="Add draft to library" Command="{Binding AddDraftCommand}"/><Button Content="Review / test manual patch…" Command="{Binding ManualTestCommand}"/><Button Content="Restore original bytes…" Command="{Binding RollbackCommand}"/><Button Content="Track value at patch address" Command="{Binding TrackCommand}"/></WrapPanel></StackPanel></GroupBox>
           <GroupBox Header="Offline dump analysis"><StackPanel><TextBlock Text="Dump base address (hex). Use the original mapped address from its capture metadata."/><TextBox Text="{Binding DumpBase, UpdateSourceTrigger=PropertyChanged}"/><WrapPanel><Button Content="Open raw dump…" Command="{Binding LoadDumpCommand}"/><Button Content="Close dump" Command="{Binding ClearDumpCommand}"/></WrapPanel><TextBlock Text="Opening a dump disconnects the console. Candidates can be analyzed and exported, but cannot be tested live or marked hardware confirmed." Style="{StaticResource Muted}"/></StackPanel></GroupBox>
         </StackPanel></ScrollViewer></TabItem>
-        <TabItem Header="Watchpoints"><ScrollViewer VerticalScrollBarVisibility="Auto"><StackPanel><TextBlock Text="Find instructions that write a value" Style="{StaticResource Heading}"/><TextBlock Text="This uses the documented hardware watchpoint protocol. The console must connect back to this PC on TCP 755. Use your PC's LAN IPv4 address for real hardware. The upstream payload fixes port 755; another configured port is reported as unsupported. Watchpoints can pause/crash the game." Foreground="#FFD487"/>
+        <TabItem Header="Watchpoints"><ScrollViewer VerticalScrollBarVisibility="Auto"><StackPanel><TextBlock Text="Find instructions that write a value" Style="{StaticResource Heading}"/><TextBlock Text="This uses the documented hardware watchpoint protocol. The console must connect back to this PC on TCP 755. Use your PC's LAN IPv4 address for real hardware. The upstream payload fixes port 755; another configured port is reported as unsupported. Watchpoints can pause/crash the game." Foreground="#795000"/>
           <UniformGrid Columns="3"><StackPanel><TextBlock Text="This PC's LAN IPv4"/><TextBox Text="{Binding LocalIp, UpdateSourceTrigger=PropertyChanged}"/></StackPanel><StackPanel><TextBlock Text="Watched address (hex)"/><TextBox Text="{Binding WatchAddress, UpdateSourceTrigger=PropertyChanged}"/></StackPanel><StackPanel><TextBlock Text="Watch width: 1, 2, 4 or 8 bytes"/><TextBox Text="{Binding WatchLength, UpdateSourceTrigger=PropertyChanged}"/></StackPanel></UniformGrid>
           <WrapPanel><Button Content="Attach debugger…" Command="{Binding AttachCommand}"/><Button Content="Set write watchpoint (slot 0)" Command="{Binding WatchCommand}"/><Button Content="Clear watchpoint" Command="{Binding ClearWatchCommand}"/><Button Content="Detach / clear all" Command="{Binding DetachCommand}"/></WrapPanel><TextBlock Text="{Binding DebugStatus}" Margin="0,20"/>
           <TextBlock Text="Thread ID"/><TextBox Text="{Binding ThreadId, UpdateSourceTrigger=PropertyChanged}" Width="200" HorizontalAlignment="Left"/><WrapPanel><Button Content="Read registers" Command="{Binding RegistersCommand}"/><Button Content="Step thread" Command="{Binding StepCommand}"/><Button Content="Resume game" Command="{Binding ResumeCommand}"/></WrapPanel><TextBlock Text="Interrupts update the viewer address and register panel in Code &amp; patches. Step repeatedly for a manual trace. No automatic function equivalence or symbolic execution is claimed." Style="{StaticResource Muted}"/>
         </StackPanel></ScrollViewer></TabItem>
       </TabControl></TabItem>
+      <TabItem Header="Help" Tag="&#xE897;" Style="{StaticResource NavigationItem}">
+        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+          <StackPanel MaxWidth="780" HorizontalAlignment="Left" Margin="12">
+            <TextBlock Text="Help" Style="{StaticResource Heading}"/>
+            <GroupBox Header="Connect your console"><TextBlock Text="Start GoldHEN, enable its BinLoader server, and open the game. Put your PC and PS4 on the same network. In Guided porting → Connect, enter the PS4 address and select Connect / test connection. The default debugger port is 744 and the loader port is 9090. Check the detected title ID and version."/></GroupBox>
+            <GroupBox Header="Port a trainer"><TextBlock Text="In Choose trainer, import an older SHN or JSON for the same title ID and select one cheat. Search for candidates, then open Analyze. Nearby trainer signatures can help distinguish repeated instructions. If several matches remain, compare the surrounding code or load a capture from the original game version."/></GroupBox>
+            <GroupBox Header="Test and export"><TextBlock Text="Use Test to review the game, addresses, and exact bytes before enabling a temporary patch. Check its effect in gameplay and restore the original bytes. Export your reviewed trainer for the target game version. Install the SHN under /user/data/GoldHEN/cheats/shn/ using FTP. If an older menu persists, close the game at a safe point and relaunch it."/></GroupBox>
+            <GroupBox Header="Connection troubleshooting"><TextBlock Text="Open Diagnostics to check the debugger, running game and readable memory regions. If the loader connection fails, check the console IP and BinLoader setting. First-time payload retrieval requires internet access or the verified ps4debug-NG 1.3.4 binary beside the app. For an offline walkthrough, select the local simulator in Connect."/></GroupBox>
+            <TextBlock Text="The portable ZIP includes the full user guide under docs/USER-GUIDE.md." Style="{StaticResource Muted}"/>
+          </StackPanel>
+        </ScrollViewer>
+      </TabItem>
     </TabControl>
-    <Border Grid.Row="3" Background="#4A2930" Padding="12" Margin="0,10,0,0"><Border.Style><Style TargetType="Border"><Setter Property="Visibility" Value="Visible"/><Style.Triggers><DataTrigger Binding="{Binding ErrorMessage}" Value=""><Setter Property="Visibility" Value="Collapsed"/></DataTrigger></Style.Triggers></Style></Border.Style><TextBlock Text="{Binding ErrorMessage}" Foreground="#FFD8D3"/></Border>
+    <Border Grid.Row="3" Background="#FDE8E7" Padding="12" Margin="0,10,0,0"><Border.Style><Style TargetType="Border"><Setter Property="Visibility" Value="Visible"/><Style.Triggers><DataTrigger Binding="{Binding ErrorMessage}" Value=""><Setter Property="Visibility" Value="Collapsed"/></DataTrigger></Style.Triggers></Style></Border.Style><TextBlock Text="{Binding ErrorMessage}" Foreground="#86251B"/></Border>
     <DockPanel Grid.Row="4" Margin="0,12,0,0"><Button DockPanel.Dock="Right" Content="Cancel current operation" Command="{Binding CancelCommand}" Padding="12,6"/><ProgressBar DockPanel.Dock="Right" Width="120" Height="5" Value="{Binding Progress, Mode=OneWay}" Maximum="100" Margin="10"/><TextBlock Text="{Binding Status}" Foreground="{StaticResource MutedBrush}" FontSize="13"/></DockPanel>
   </Grid>
 </Window>

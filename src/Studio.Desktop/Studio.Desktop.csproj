@@ -2,7 +2,7 @@
   <PropertyGroup>
     <OutputType>WinExe</OutputType><TargetFramework>net10.0-windows</TargetFramework>
     <UseWPF>true</UseWPF><EnableWindowsTargeting>true</EnableWindowsTargeting>
-    <AssemblyName>PS4GoldHENCheatStudio</AssemblyName><Version>0.2.0</Version>
+    <AssemblyName>PS4GoldHENCheatStudio</AssemblyName><Version>0.3.0</Version>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <PublishSingleFile>true</PublishSingleFile><SelfContained>true</SelfContained>

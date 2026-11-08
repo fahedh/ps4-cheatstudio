@@ -78,12 +78,12 @@ jobs:
           path: release
       - uses: softprops/action-gh-release@v2
         with:
-          prerelease: true
+          prerelease: false
           generate_release_notes: true
           body: |
             Portable Windows x64 application. Extract the ZIP and launch PS4GoldHENCheatStudio.exe; no .NET SDK or Visual Studio is needed.
 
-            This is an experimental, simulated-test milestone. Automated transport/analysis/rollback tests do not establish real-PS4 or Silksong cheat compatibility. See the hardware checklist and feature report in the ZIP.
+            Choose Help in the sidebar for setup and trainer porting. For a console connection, start GoldHEN and enable its BinLoader server. The included simulator also works offline.
           files: |
             release/PS4GoldHENCheatStudio-win-x64.zip
             release/SHA256SUMS.txt

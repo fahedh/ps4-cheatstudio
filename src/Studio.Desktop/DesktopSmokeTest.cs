@@ -51,6 +51,8 @@ public static class DesktopSmokeTest
             Require(!vm.ConfirmWorkingCommand.CanExecute(null), "Simulator cannot be labeled hardware verified.");
             result.Add("PASS trainer import, guided relocation, no false hardware verification");
             await app.Dispatcher.InvokeAsync(() => { }, DispatcherPriority.Render);
+            await app.Dispatcher.InvokeAsync(() => main.UpdateLayout(), DispatcherPriority.ContextIdle);
+            await Task.Delay(500);
             var bitmap = new RenderTargetBitmap((int)main.ActualWidth, (int)main.ActualHeight, 96, 96, PixelFormats.Pbgra32); bitmap.Render(main);
             var encoder = new PngBitmapEncoder(); encoder.Frames.Add(BitmapFrame.Create(bitmap)); using (var stream = File.Create(Path.Combine(output, "guided-analysis.png"))) encoder.Save(stream);
             vm.WritesEnabled = true; await Execute(vm, vm.TestCommand);

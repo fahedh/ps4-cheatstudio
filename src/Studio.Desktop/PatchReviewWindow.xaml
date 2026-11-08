@@ -3,7 +3,7 @@
     <TextBlock Text="Review before writing" Style="{StaticResource Heading}"/>
     <TextBlock x:Name="GameText" Grid.Row="1" Style="{StaticResource Muted}"/>
     <TextBox x:Name="Changes" Grid.Row="2" FontFamily="Consolas" IsReadOnly="True" AcceptsReturn="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto"/>
-    <StackPanel Grid.Row="3"><TextBlock Text="A byte match does not prove this cheat is correct. Patching a running game is not atomic and can crash the game or corrupt saves. Back up saves first. Original bytes will be saved locally for rollback." Foreground="#FFD487" Margin="0,12"/>
+    <StackPanel Grid.Row="3"><TextBlock Text="A byte match does not prove this cheat is correct. Patching a running game is not atomic and can crash the game or corrupt saves. Back up saves first. Original bytes will be saved locally for rollback." Foreground="#795000" Margin="0,12"/>
     <CheckBox x:Name="Risk" Content="I reviewed these exact changes and accept the risks." Checked="RiskChanged" Unchecked="RiskChanged"/></StackPanel>
     <StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Right"><Button Content="Cancel" IsCancel="True"/><Button x:Name="Apply" Content="Write these bytes" IsEnabled="False" Style="{StaticResource Primary}" Click="ApplyClicked"/></StackPanel>
   </Grid>

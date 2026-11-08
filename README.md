@@ -6,14 +6,14 @@ The primary interface is a first-launch setup wizard followed by **Connect → C
 
 ## Download and run on Windows
 
-1. Open [Windows build runs](https://github.com/fahedh/ps4-cheatstudio/actions/workflows/windows.yml).
-2. Select a **successful** run, then download the **PS4GoldHENCheatStudio-win-x64** artifact. GitHub may require sign-in for Actions artifact downloads.
-3. Extract the artifact, then extract `PS4GoldHENCheatStudio-win-x64.zip` into a writable folder.
-4. Run **PS4GoldHENCheatStudio.exe**. No Visual Studio or .NET installation is required. Windows 10/11 x64 is the intended platform. The executable is unsigned.
+1. Download **[PS4GoldHENCheatStudio-win-x64.zip](https://github.com/fahedh/ps4-cheatstudio/releases/latest/download/PS4GoldHENCheatStudio-win-x64.zip)** from the [latest Windows release](https://github.com/fahedh/ps4-cheatstudio/releases/latest).
+2. In Windows Explorer, right-click the ZIP and select **Extract All**. Open the extracted folder.
+3. Run **PS4GoldHENCheatStudio.exe**. The ZIP includes the Windows x64 runtime, simulator, examples and guides. You do not need Visual Studio, the .NET SDK or PS4CheaterNeo.
+4. Choose **Help** in the sidebar for connection, trainer porting, testing and troubleshooting. To practice without a PS4, use the simulator.
 
-Use a successful build for the current revision. Earlier build artifacts contain earlier versions of the app.
+The app is unsigned. A SHA-256 checksum is posted beside the ZIP. For an intermediate development build, see [Windows build runs](https://github.com/fahedh/ps4-cheatstudio/actions/workflows/windows.yml).
 
-Version tags (`v*`) also publish a prerelease ZIP and SHA-256 checksum to [Releases](https://github.com/fahedh/ps4-cheatstudio/releases) after Windows tests and WPF launch checks pass. A workflow file in source alone does not mean an artifact has been published: check that a run succeeded.
+![PS4 Cheat Studio analysis screen with sidebar navigation and Help](docs/studio-preview.png)
 
 ## Try it without a PS4
 
@@ -33,7 +33,7 @@ Connect with the target game in the foreground and import its older SHN. Select 
 
 ## Development
 
-Install the pinned .NET SDK in `global.json` (10.0.403). The existing checkout is the working directory; do not create a worktree just to run the app.
+From the repository root on Windows, install .NET SDK 10.0.403 and Python 3.11 or newer. Python is used to assemble the release ZIP.
 
 ```sh
 dotnet restore PS4GoldHENCheatStudio.sln --locked-mode
@@ -49,6 +49,8 @@ dotnet publish src/Studio.Desktop -c Release -r win-x64 --self-contained true -p
 dotnet publish src/Studio.MockHost -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:StudioPublish=true -o artifacts/publish/mock
 ./build/Package.ps1
 ```
+
+The packaging script creates `artifacts/PS4GoldHENCheatStudio-win-x64.zip` and `artifacts/SHA256SUMS.txt`. Maintainers can push a version tag such as `v0.3.0` to run the Windows checks and publish both files to GitHub Releases.
 
 ## Documentation
 
