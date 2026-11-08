@@ -10,7 +10,7 @@
       <StackPanel><TextBlock Text="Timeout (seconds)"/><TextBox Text="{Binding Timeout, UpdateSourceTrigger=PropertyChanged}"/></StackPanel>
     </UniformGrid>
     <CheckBox Content="Use a local simulated console (no PS4 required)" IsChecked="{Binding UseSimulator}"/>
-    <TextBlock Text="The payload loader and FTP ports are saved for reference. Connection uses the already running debugger; no payload is injected and no files are sent by FTP." Style="{StaticResource Muted}"/>
+    <TextBlock Text="Connect checks the debugger first. If its port refuses the connection, Studio sends ps4debug-NG to the GoldHEN payload loader once." Style="{StaticResource Muted}"/>
     <WrapPanel><Button Content="Connect / test connection" Command="{Binding ConnectCommand}" Style="{StaticResource Primary}"/><Button Content="Disconnect" Command="{Binding DisconnectCommand}"/><Button Content="Save settings" Command="{Binding SaveSettingsCommand}"/></WrapPanel>
   </StackPanel>
 </UserControl>

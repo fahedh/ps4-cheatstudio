@@ -122,12 +122,15 @@ public sealed class DebuggerClient : IProcessMemory, IAsyncDisposable
     public Task<IReadOnlyList<MemoryRegion>> GetMapsAsync(int pid, CancellationToken ct = default) => CommandAsync<IReadOnlyList<MemoryRegion>>(Wire.Maps, Wire.Pid(pid), async (_, t) =>
     {
         var n = Wire.U32(await Receive(4, t)); if (n > 65536) throw new InvalidDataException("Invalid memory map count.");
-        var b = await Receive(checked((int)n * 64), t); var result = new List<MemoryRegion>();
+        var b = await Receive(checked((int)n * 58), t); var result = new List<MemoryRegion>();
         for (var i = 0; i < (int)n; i++)
         {
-            var o = i * 64; var start = Wire.U64(b, o); var end = Wire.U64(b, o + 8);
+            var o = i * 58; var start = Wire.U64(b, o + 32); var end = Wire.U64(b, o + 40);
+            // The live NG endpoint may include a completely empty sentinel slot.
+            // Retain wire indices for every real map; reject other invalid ranges.
+            if (b.AsSpan(o, 58).IndexOfAnyExcept((byte)0) < 0) continue;
             if (end <= start) throw new InvalidDataException("Memory map end must exceed start.");
-            result.Add(new(i, start, end, Wire.U64(b, o + 16), Wire.U64(b, o + 24), Wire.Text(b, o + 32, 32)));
+            result.Add(new(i, start, end, Wire.U64(b, o + 48), BinaryPrimitives.ReadUInt16LittleEndian(b.AsSpan(o + 56, 2)), Wire.Text(b, o, 32)));
         }
         return result;
     }, ct);

@@ -1,19 +1,19 @@
 # PS4 GoldHEN Cheat Studio
 
-A native .NET 10 / WPF Windows application for guided GoldHEN trainer analysis, candidate porting and controlled testing. Local operation, no account, subscription or API key. **Experimental: simulated validation is not real-console validation. No working Silksong 01.05 Infinite Health cheat is claimed or bundled.**
+Standalone Windows x64 app for creating and porting GoldHEN trainers. Start the game on a GoldHEN-enabled PS4, connect from Studio, and import an older SHN for the same title. Studio reads the running game and compares its instructions with the trainer. PS4CheaterNeo is optional.
 
 The primary interface is a first-launch setup wizard followed by **Connect → Choose trainer → Analyze → Test → Export**. Advanced Mode contains process maps, value/pattern scanning, hex/disassembly, manual patch creation, live value tracking and hardware watchpoints. Buttons invoke real implementations, not mock success notifications. The optional simulator is explicitly labeled throughout.
 
 ## Download and run on Windows
 
-1. Open [Windows build runs](https://github.com/fahedh/PS-AICheatsCreator/actions/workflows/windows.yml).
+1. Open [Windows build runs](https://github.com/fahedh/ps4-cheatstudio/actions/workflows/windows.yml).
 2. Select a **successful** run, then download the **PS4GoldHENCheatStudio-win-x64** artifact. GitHub may require sign-in for Actions artifact downloads.
 3. Extract the artifact, then extract `PS4GoldHENCheatStudio-win-x64.zip` into a writable folder.
 4. Run **PS4GoldHENCheatStudio.exe**. No Visual Studio or .NET installation is required. Windows 10/11 x64 is the intended platform. The executable is unsigned.
 
-**Current 0.2 audit build:** [download from successful Windows build 42422376905](https://github.com/fahedh/PS-AICheatsCreator/actions/runs/42422376905). Its published executable passed the automated first-launch and guided simulator workflow on Windows. See [validation evidence](docs/VALIDATION.md).
+Use a successful build for the current revision. Earlier build artifacts contain earlier versions of the app.
 
-Version tags (`v*`) also publish a prerelease ZIP and SHA-256 checksum to [Releases](https://github.com/fahedh/PS-AICheatsCreator/releases) after Windows tests and WPF launch checks pass. A workflow file in source alone does not mean an artifact has been published: check that a run succeeded.
+Version tags (`v*`) also publish a prerelease ZIP and SHA-256 checksum to [Releases](https://github.com/fahedh/ps4-cheatstudio/releases) after Windows tests and WPF launch checks pass. A workflow file in source alone does not mean an artifact has been published: check that a run succeeded.
 
 ## Try it without a PS4
 
@@ -23,9 +23,13 @@ The embedded simulator requires no separate server. A standalone copy is also pa
 
 ## First PS4 connection
 
-Load GoldHEN and **ps4debug-NG v1.3.4** separately; this app never reinjects a payload. Start your game. Use the configured LAN address (default `192.168.8.188`), debugger TCP `744`, FTP `2121`, payload loader `9090`. All settings are editable. Ordinary reading/scanning does not need the reverse interrupt port. Watchpoints require the PC's LAN IPv4 address and incoming TCP `755`; upstream NG fixes that port, and the app reports alternate interrupt ports as unsupported rather than pretending they work.
+Enable GoldHEN and its BinLoader server. Studio first tries the debugger handshake. On connection refusal it sends the official ps4debug-NG 1.3.4 payload once to the configured loader, then retries the handshake. A timeout or incompatible debugger stops the connection. On first use Studio downloads the pinned GitHub release and verifies its SHA-256. It caches the verified file for subsequent sessions. For offline first use, place ps4debug-ng_v1.3.4_release_2026-11-05.bin from the official Pharaoh2k/ps4debug-NG 1.3.4 release beside the executable. Start your game. Use the configured LAN address (default `192.168.8.188`), debugger TCP `744`, FTP `2121`, payload loader `9090`. All settings are editable. Ordinary reading/scanning does not need the reverse interrupt port. Watchpoints require the PC's LAN IPv4 address and incoming TCP `755`; upstream NG fixes that port, and the app reports alternate interrupt ports as unsupported rather than pretending they work.
 
 The default firmware reference is **13.52 / GoldHEN 2.4b18**, not a claim that this combination has been tested. Follow the [hardware checklist](docs/HARDWARE-CHECKLIST.md) before writing.
+
+## Port an older SHN to the running version
+
+Connect with the target game in the foreground and import its older SHN. Select a cheat and analyze. For repeated instructions, Studio checks other trainer lines from the same source section at their relative offsets. Matching neighbors raise candidate rankings. Review the candidates, branch destinations and any proposed code cave before testing or exporting. Ambiguous or changed code may require old-version context or manual redesign. Export the target-version SHN after review. On a Silksong CUSA39420 01.05 hardware session, a separate read-only comparison used this neighboring-instruction technique to distinguish one health hook among 47 identical byte sequences. Health, silk and flight were subsequently confirmed by the user in gameplay.
 
 ## Development
 

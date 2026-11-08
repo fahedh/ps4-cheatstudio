@@ -148,7 +148,7 @@ public sealed partial class StudioViewModel
     private async Task AnalyzeCapturedAsync(CancellationToken ct)
     {
         if (lastSegments is null || SelectedCheat is null) throw new InvalidOperationException("Analyze the target before reviewing a candidate.");
-        var options = EvidenceOptions(); var oldSelection = SelectedPortCandidate;
+        var options = EvidenceOptions() with { TrainerAnchors = SelectedTrainer?.Cheats.SelectMany(c => c.Patches).ToArray() ?? [] }; var oldSelection = SelectedPortCandidate;
         port = await Task.Run(() => PortingEngine.AnalyzeSegments(SelectedCheat, lastSegments, InstructionPatch, ct, options), ct);
         Candidates.Clear(); foreach (var c in port.Candidates) Candidates.Add(c);
         Proposed.Clear(); foreach (var p in port.ProposedPatches) Proposed.Add(p);

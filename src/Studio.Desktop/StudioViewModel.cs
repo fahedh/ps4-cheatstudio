@@ -76,7 +76,7 @@ public sealed partial class StudioViewModel : Observable, IAsyncDisposable
     public string SetupDescription => SetupStep switch
     {
         0 => "Port a trainer with guided analysis, review every proposed change, and keep a way back. Everything stays on your PC. No account or API key is needed.",
-        1 => "Enter your PS4's local IP. GoldHEN and ps4debug-NG must already be running. You can also use the local simulator while your console is unavailable.",
+        1 => "Enter your PS4's local IP. Enable the GoldHEN payload loader on your PS4. You can also use the local simulator while your console is unavailable.",
         _ => "Use Test connection to detect the game and exact version. You can finish setup offline and connect later. All connections start read-only."
     };
     public string SetupNextText => SetupStep == 2 ? "Finish setup" : "Continue";
@@ -104,7 +104,7 @@ public sealed partial class StudioViewModel : Observable, IAsyncDisposable
     public bool SimulationConnection { get; private set; }
     public string ConnectionLabel => offlineDump is not null ? "OFFLINE DUMP · no live testing" : !Connected ? "DISCONNECTED · read-only" : SimulationConnection ? "SIMULATOR · no hardware validation" : "PS4 CONNECTED";
     public string GameLabel => game is null ? "No game detected" : $"{game.TitleId} · {game.Version} · {game.ProcessName} · PID {game.Pid}";
-    public string DebuggerLabel => client.Information is { } i ? $"{i.Brand} · firmware {i.FirmwareDisplay} · protocol {i.Protocol} · capability {i.Capability}" : "Debugger is loaded separately. No payload is injected.";
+    public string DebuggerLabel => client.Information is { } i ? $"{i.Brand} · firmware {i.FirmwareDisplay} · protocol {i.Protocol} · capability {i.Capability}" : "Connect to detect or start ps4debug-NG.";
 
     public ICommand ConnectCommand { get; }
     public ICommand DisconnectCommand { get; }
@@ -224,7 +224,13 @@ public sealed partial class StudioViewModel : Observable, IAsyncDisposable
             simulator = new(); simulator.Start(); settings = settings with { Host = "127.0.0.1", DebugPort = simulator.Port };
         }
         Status = "Connecting and detecting the running game…";
-        await client.ConnectAsync(settings, ct); session = new(client);
+        if (UseSimulator) await client.ConnectAsync(settings, ct);
+        else await PayloadBootstrap.ConnectAsync(t => client.ConnectAsync(settings, t), t =>
+        {
+            Status = "Starting ps4debug-NG through the PS4 payload loader…";
+            return PayloadBootstrap.SendOfficialAsync(settings, t);
+        }, ct);
+        session = new(client);
         SimulationConnection = client.Information!.Brand.Contains("[SIMULATOR]", StringComparison.Ordinal);
         await RefreshGameAsync(ct); WritesEnabled = false;
         await RunDiagnosticsAsync(ct);

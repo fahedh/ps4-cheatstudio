@@ -1,3 +1,4 @@
+using System.Buffers.Binary;
 using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Sockets;
@@ -87,8 +88,8 @@ public sealed class MockDebuggerServer : IAsyncDisposable
                         await Status(stream, Wire.Success, ct); await Reply(stream, game, ct); break;
                     case Wire.Maps:
                         if (body.Length != 4 || Wire.U32(body) != Game.Pid) { await Status(stream, 0xF0000001, ct); break; }
-                        var maps = new byte[4 + 64 * Regions.Count]; Wire.Put32(maps, 0, (uint)Regions.Count);
-                        for (var i = 0; i < Regions.Count; i++) { var m = Regions[i]; var o = 4 + i * 64; Wire.Put64(maps, o, m.Start); Wire.Put64(maps, o + 8, m.End); Wire.Put64(maps, o + 16, m.Offset); Wire.Put64(maps, o + 24, m.Protection); Text(maps, o + 32, m.Name); }
+                        var maps = new byte[4 + 58 * Regions.Count]; Wire.Put32(maps, 0, (uint)Regions.Count);
+                        for (var i = 0; i < Regions.Count; i++) { var m = Regions[i]; var o = 4 + i * 58; Text(maps, o, m.Name); Wire.Put64(maps, o + 32, m.Start); Wire.Put64(maps, o + 40, m.End); Wire.Put64(maps, o + 48, m.Offset); BinaryPrimitives.WriteUInt16LittleEndian(maps.AsSpan(o + 56, 2), checked((ushort)m.Protection)); }
                         await Status(stream, Wire.Success, ct); await Reply(stream, maps, ct); break;
                     case Wire.Read:
                     case Wire.Write:

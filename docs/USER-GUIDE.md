@@ -4,7 +4,7 @@
 
 On first launch, the three-page wizard explains the safety model, saves your connection settings and optionally tests a connection. Setup can finish offline. Reopen the Connect step to change settings later. **Connect / test connection** is one operation after initial setup: handshake, firmware/brand/capability detection, foreground game and exact version, process maps and automatic read-only diagnostics.
 
-Load the debugger yourself before connecting. Do not choose simulator mode when you intend to use a real PS4. The green connection label always distinguishes a live connection, a simulator and an offline dump.
+Enable the GoldHEN payload loader before connecting. Studio checks the debugger first and can start it when its port refuses the connection. Do not choose simulator mode when you intend to use a real PS4. The green connection label always distinguishes a live connection, a simulator and an offline dump.
 
 Import a `.json` or `.shn` trainer. Select a cheat in **Choose trainer**. Fixed checkbox memory patches are supported; extended commands/scripts/sliders are rejected rather than silently dropped. Known SHN PS5Offset text, original author attributes and genres are preserved during SHN round trips. PS5Offset never overrides PS4 Section/Offset fields. New PS4 target proposals clear old PS5 offsets instead of claiming they apply to another platform/version. SHN section indices and absolute flags are preserved for inspection. Absolute-address SHN patches need manual mapping and are not automatically ported.
 

@@ -11,10 +11,10 @@
       <TabItem Header="Guided porting">
         <TabControl SelectedIndex="{Binding GuidedStep}" Padding="20">
           <TabItem Header="1  Connect"><ScrollViewer VerticalScrollBarVisibility="Auto"><Grid><Grid.ColumnDefinitions><ColumnDefinition Width="3*"/><ColumnDefinition Width="2*"/></Grid.ColumnDefinitions>
-            <StackPanel Margin="0,0,30,0"><TextBlock Text="Connect your PS4" Style="{StaticResource Heading}"/><TextBlock Text="Load GoldHEN and ps4debug-NG separately, start your game, then connect. Your saved settings make future connections one click." Style="{StaticResource Muted}"/><local:ConnectionPanel/>
+            <StackPanel Margin="0,0,30,0"><TextBlock Text="Connect your PS4" Style="{StaticResource Heading}"/><TextBlock Text="Enable the GoldHEN payload loader, start your game, then connect." Style="{StaticResource Muted}"/><local:ConnectionPanel/>
             <GroupBox Header="Working without a console?"><StackPanel><TextBlock Text="The local simulator supports the entire connect → import → analyze → write/readback → rollback flow. It cannot verify gameplay or a real Silksong patch."/><Button Content="Load the synthetic demo trainer" Command="{Binding DemoTrainerCommand}" HorizontalAlignment="Left"/></StackPanel></GroupBox></StackPanel>
             <StackPanel Grid.Column="1"><TextBlock Text="Recent sessions" FontSize="20" FontWeight="SemiBold" Margin="0,0,0,15"/><ListBox ItemsSource="{Binding Recent}" MaxHeight="350"><ListBox.ItemTemplate><DataTemplate><StackPanel><TextBlock Text="{Binding TitleId}" FontWeight="Bold"/><TextBlock Text="{Binding Version}"/><TextBlock Text="{Binding Mode}" Foreground="#70D8C4"/><TextBlock Text="{Binding Time, StringFormat={}{0:g}}" FontSize="12"/></StackPanel></DataTemplate></ListBox.ItemTemplate></ListBox>
-            <TextBlock Text="Every connection starts read-only. Nothing is injected into your console, and no dumps or saves are uploaded." Style="{StaticResource Muted}" Margin="0,20"/></StackPanel>
+            <TextBlock Text="Game memory starts in read-only mode." Style="{StaticResource Muted}" Margin="0,20"/></StackPanel>
           </Grid></ScrollViewer></TabItem>
           <TabItem Header="2  Choose trainer"><ScrollViewer VerticalScrollBarVisibility="Auto"><StackPanel>
             <TextBlock Text="Which cheat do you want to port?" Style="{StaticResource Heading}"/><TextBlock Text="Import a GoldHEN JSON or SHN trainer from an older game version. The title ID must match your running game. Every imported cheat starts unverified." Style="{StaticResource Muted}"/>

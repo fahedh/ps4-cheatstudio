@@ -5,7 +5,7 @@ All items remain pending until explicitly tested. Target reference: PS4 Fat, fir
 - [ ] Download a successful Windows artifact, verify its checksum, extract and launch without .NET/SDK/Visual Studio installed.
 - [ ] Complete first-launch setup on Windows 10/11 x64; verify DPI, keyboard navigation and long trainer names/error messages.
 - [ ] Back up saves. Use a trusted local network. Confirm console IP/ports.
-- [ ] Load debugger separately. Confirm the app connects without injecting a payload or starting FTP transfer.
+- [ ] Check both connection paths: reuse a running debugger, then on a separate startup with just GoldHEN and its loader enabled, confirm a single payload send followed by a successful handshake.
 - [ ] Verify detected firmware, brand, capability and exact foreground CUSA/version against the console.
 - [ ] Compare process maps to a known debugger; confirm entry sizes, permissions, main-module base and section interpretation.
 - [ ] Read a known game-memory range and export its map metadata; verify bytes independently.

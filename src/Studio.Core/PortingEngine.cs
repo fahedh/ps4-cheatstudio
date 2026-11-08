@@ -4,6 +4,7 @@ namespace Studio.Core;
 
 public record PortingOptions
 {
+    public IReadOnlyList<PatchLine> TrainerAnchors { get; init; } = [];
     public List<SourceEvidence> Sources { get; init; } = [];
     public Dictionary<int, ulong> SourceSectionBases { get; init; } = [];
     public HashSet<string> ReviewedCaves { get; init; } = [];
@@ -39,7 +40,16 @@ public static class PortingEngine
         ulong OldAddress(PatchLine p) => checked((bases.TryGetValue(p.Section, out var start) ? start : 0) + p.Offset);
         var hasCaves = instructionPatch && cheat.Patches.Any(IsCave);
         var references = new List<(ulong From, ulong To, string Kind)>();
-        if (hasCaves) foreach (var (region, bytes) in segments) references.AddRange(CaveAnalysis.References(bytes, region.Start, ct));
+        if (hasCaves)
+        {
+            var caveTargets = cheat.Patches.Where(IsCave).SelectMany(p => segments
+                .Where(s => s.Region.Readable && s.Region.Executable)
+                .SelectMany(s => CodeAnalysis.FindCaves(s.Bytes, s.Region.Start, p.Original.Length)
+                    .Where(c => c.Fill == p.Original[0]).Take(1001)
+                    .Select(c => (Start: c.Address, Length: p.Original.Length)))).Distinct().ToArray();
+            foreach (var (region, bytes) in segments)
+                references.AddRange(CaveAnalysis.References(bytes, region.Start, ct, caveTargets));
+        }
 
         foreach (var patch in cheat.Patches)
         {
@@ -75,7 +85,8 @@ public static class PortingEngine
                     foreach (var at in signature.Find(bytes, 1000, ct)) found[at] = (patch.Original.Length, false);
                     if (instructionPatch)
                     {
-                        FindOperandMatches(patch, bytes, region.Start, found, ct);
+                        try { FindOperandMatches(patch, bytes, region.Start, found, ct); }
+                        catch (InvalidDataException e) { warnings.Add($"{patch.Id}: {e.Message} Search incomplete; review candidates."); }
                         if (source is not null) FindContextMatches(patch, source, bytes, found, ct);
                     }
                     foreach (var (at, match) in found)
@@ -97,7 +108,9 @@ public static class PortingEngine
                         }
                         if (match.Context) { score += 25; reasons.Add("Both old surrounding anchors matched; the bytes between them were compared, including inserted/deleted instructions."); }
                         else if (source is null) reasons.Add("No original context dump was available. Capture old-version context to distinguish function/operand changes.");
-                        lineCandidates.Add(new(patch.Id, address, Math.Clamp(score, 0, 95), exact, false, string.Join(" ", reasons), expected, region.Index, comparison));
+                        var anchors = CountMatchingNeighbors(patch, at, bytes, options.TrainerAnchors);
+                        if (anchors > 0) reasons.Add($"{anchors} neighboring trainer signature(s) match at the same relative offsets.");
+                        lineCandidates.Add(new(patch.Id, address, Math.Clamp(score, 0, 85) + Math.Min(14, 4 * anchors), exact, false, string.Join(" ", reasons), expected, region.Index, comparison));
                     }
                 }
                 catch (Exception e) when (e is InvalidDataException or FormatException) { warnings.Add($"{patch.Id}: {e.Message}"); }
@@ -182,6 +195,23 @@ public static class PortingEngine
     }
 
     public static bool IsCave(PatchLine patch) => patch.IsCodeCave || patch.Original.Length >= 5 && patch.Original.All(b => b == patch.Original[0]) && patch.Original[0] is 0 or 0x90 or 0xCC;
+
+    public static int CountMatchingNeighbors(PatchLine patch, int at, byte[] segment, IReadOnlyList<PatchLine> anchors)
+    {
+        var matches = new HashSet<ulong>();
+        foreach (var neighbor in anchors)
+        {
+            if (neighbor.Absolute || neighbor.Section != patch.Section || neighbor.Original.Length < 4 || IsCave(neighbor)) continue;
+            var distance = (Int128)neighbor.Offset - patch.Offset;
+            if (distance < -65536 || distance > 65536) continue;
+            long delta = (long)distance;
+            if (delta == 0 || delta > 0 && delta < patch.Original.Length || delta < 0 && -delta < neighbor.Original.Length) continue;
+            long pos = at + delta;
+            if (pos >= 0 && pos + neighbor.Original.Length <= segment.Length && segment.AsSpan((int)pos, neighbor.Original.Length).SequenceEqual(neighbor.Original))
+                matches.Add(neighbor.Offset);
+        }
+        return matches.Count;
+    }
 
     private static void FindOperandMatches(PatchLine patch, byte[] bytes, ulong start, Dictionary<int, (int Length, bool Context)> found, CancellationToken ct)
     {
