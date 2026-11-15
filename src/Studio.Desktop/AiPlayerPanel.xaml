@@ -3,7 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
   <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
     <StackPanel Margin="14" MaxWidth="840" HorizontalAlignment="Left">
-      <TextBlock Text="AI Player — The Walking Dead" FontSize="25" FontWeight="SemiBold" Margin="0,0,0,8"/>
+      <TextBlock Text="AI Player — The Walking Dead: Season Two" FontSize="25" FontWeight="SemiBold" Margin="0,0,0,8"/>
       <TextBlock Text="Offline foundation — no live PS4 gameplay, capture, or OpenAI calls yet."
                  Foreground="#795000" TextWrapping="Wrap" Margin="0,0,0,14"/>
       <Border Background="#EDF3FA" CornerRadius="6" Padding="16" Margin="0,0,0,12">
