@@ -1,31 +1,13 @@
-# AI Player — The Walking Dead: Season Two (experimental, offline-first)
+# AI Player for Windows
 
-The `feature/ai-player-foundation` branch adds an **AI Player tab** to CheatStudio,
-a hardware-independent game-agent contract, a synthetic Clementine dialogue
-step, and offline tests. It does not yet connect to the PS4 or OpenAI.
+Open a paired chiaki-ng stream using its default keyboard mappings. In Cheat Studio, open **AI Player**. **Capture frame** shows what Studio sees. Choose a control and click **Send selected control** to try a 150 ms press. Studio brings chiaki-ng to the foreground for each session.
 
-## How to test with the PC only
-1. Build CheatStudio normally with .NET 10 and open **AI Player**.
-2. Click **Run offline step**.
-3. Verify that a synthetic dialogue observation and a `Down` decision appear.
-4. Check that the activity log shows `Press Down` followed by `Release all`.
-5. Test **Stop / release** while an adapter is running.
+For automatic play, open the game first. Set the Windows user environment variable `OPENAI_API_KEY` and reopen Studio. Enter a gameplay goal and click **Play with AI**. Each step sends the current Remote Play picture to the OpenAI Responses API, receives a controller decision and captures the next picture. API usage is billed to the configured account. Set `CHEATSTUDIO_VISION_MODEL` to override the default gpt-4.1. Click **Stop / release** to cancel. A run ends after 60 decisions or earlier if the model requests a stop. Network round trips limit reactions to timed prompts. Games may autosave during normal play.
 
-CLI tests:
-`dotnet test tests/Studio.Tests/Studio.Tests.csproj --filter FullyQualifiedName~AiPlayerTests`
+## Control from a local assistant
 
-## Next integrations, when PC and PS4 are running
-- Implement `IGameController` against a **verified** GoldHEN-compatible virtual DS4 interface.
-  The existing ps4debug-NG connection reads memory; it does **not** automatically
-  supply controller input. Verify pairing, latency and button mappings on hardware.
-- Implement `IGameCapture` for a local game capture source (Chiaki-ng or HDMI capture).
-- Implement `IGameObserver` for screen-state/dialogue recognition.
-- Implement `IGameAgent` with structured OpenAI Responses API output and bounded actions.
-  API keys must remain local, never committed.
-- Optionally implement `IGameMemoryReader` using the existing read-only
-  CheatStudio debug protocol, only after checking addresses for the game version.
-- Add continuous-session orchestration, local QTE handling, watchdog, input
-  emergency release, manual takeover, latency measurements, and replay tests.
+The Windows executable also accepts `--remote-play OUTPUT.png [MILLISECONDS BUTTON ...]`. Use a new absolute output path each time. With only a path it captures one frame locally. With buttons it holds up to four together for 40–2000 ms, releases them, waits briefly, and captures the result. Wait for the process to exit before reading the PNG or sending another move. Exit code 0 means success. The local interface requires only the paired stream.
 
-The included synthetic demo **does not actually play The Walking Dead: Season Two**. The target is Season Two, Episode 1 (All That Remains), with Clementine as the playable character.
-This is a development foundation to prepare while both devices are off.
+Controls include Up, Down, Left, Right, Cross, Circle, Square, Triangle, L1–L3, R1–R3, Options, Share, Touchpad (click), PS, and LeftStick or RightStick followed by Up, Down, Left, or Right. Stick directions use full deflection. Touch gestures, motion controls and partial trigger pressure are outside this keyboard interface.
+
+**Run offline step** still exercises the synthetic observation, decision and button release using the simulated controller.
