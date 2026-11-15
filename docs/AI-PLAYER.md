@@ -1,7 +1,7 @@
-# AI Player — experimental, offline-first
+# AI Player — The Walking Dead: Season Two (experimental, offline-first)
 
 The `feature/ai-player-foundation` branch adds an **AI Player tab** to CheatStudio,
-a hardware-independent game-agent contract, a synthetic Walking Dead-style dialogue
+a hardware-independent game-agent contract, a synthetic Clementine dialogue
 step, and offline tests. It does not yet connect to the PS4 or OpenAI.
 
 ## How to test with the PC only
@@ -27,5 +27,5 @@ CLI tests:
 - Add continuous-session orchestration, local QTE handling, watchdog, input
   emergency release, manual takeover, latency measurements, and replay tests.
 
-The included synthetic demo **does not actually play The Walking Dead**.
+The included synthetic demo **does not actually play The Walking Dead: Season Two**. The target is Season Two, Episode 1 (All That Remains), with Clementine as the playable character.
 This is a development foundation to prepare while both devices are off.
