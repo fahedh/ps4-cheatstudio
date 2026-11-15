@@ -1,0 +1,47 @@
+<UserControl x:Class="Studio.Desktop.AiPlayerPanel"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+    <StackPanel Margin="14" MaxWidth="840" HorizontalAlignment="Left">
+      <TextBlock Text="AI Player — The Walking Dead: Season Two" FontSize="25" FontWeight="SemiBold" Margin="0,0,0,8"/>
+      <TextBlock Text="Open a menu in the connected chiaki-ng stream before testing live input."
+                 Foreground="#795000" TextWrapping="Wrap" Margin="0,0,0,14"/>
+      <Border Background="#EDF3FA" CornerRadius="6" Padding="16" Margin="0,0,0,12">
+        <StackPanel>
+          <TextBlock Text="PS4 gameplay preview" FontSize="18" FontWeight="SemiBold"/>
+          <Image Source="{Binding Preview}" MaxHeight="230" Stretch="Uniform"/>
+        </StackPanel>
+      </Border>
+      <GroupBox Header="AI state (synthetic test only)">
+        <StackPanel>
+          <TextBlock Text="Detected mode" FontWeight="SemiBold"/>
+          <TextBlock Text="{Binding DetectedMode}" Margin="0,3,0,10"/>
+          <TextBlock Text="Dialogue choices" FontWeight="SemiBold"/>
+          <TextBlock Text="{Binding ObservedChoices}" TextWrapping="Wrap" Margin="0,3,0,10"/>
+          <TextBlock Text="Controller action" FontWeight="SemiBold"/>
+          <TextBlock Text="{Binding CurrentDecision}" Margin="0,3,0,10"/>
+        </StackPanel>
+      </GroupBox>
+      <TextBlock Text="Gameplay goal" Margin="0,8,0,0"/>
+      <TextBox Text="{Binding Goal,UpdateSourceTrigger=PropertyChanged}"/>
+      <WrapPanel Margin="0,12,0,4">
+        <ComboBox ItemsSource="{Binding Controls}" SelectedItem="{Binding SelectedControl}" MinWidth="110"/>
+        <Button Content="Capture frame" Command="{Binding CaptureCommand}"/>
+        <Button Content="Play with AI (sends game frames to OpenAI)" Command="{Binding PlayCommand}"/>
+        <Button Content="Send selected control" Command="{Binding LiveUpCommand}" Padding="14,7" Margin="0,0,10,0"/>
+        <Button Content="Run offline step" Command="{Binding RunOfflineStepCommand}"
+                Padding="14,7" Margin="0,0,10,0"/>
+        <Button Content="Stop / release" Command="{Binding StopCommand}"
+                Padding="14,7"/>
+      </WrapPanel>
+      <TextBlock Text="{Binding Status}" TextWrapping="Wrap" Margin="0,8,0,14"/>
+      <GroupBox Header="Activity log">
+        <ListBox ItemsSource="{Binding Activity}" MinHeight="160" MaxHeight="300"
+                 FontFamily="Consolas" FontSize="12"/>
+      </GroupBox>
+      <TextBlock Text="Use the default chiaki-ng keyboard mapping. Automatic play runs up to 60 moves. Click Stop to end a run."
+                 TextWrapping="Wrap" Margin="0,14,0,0"/>
+    </StackPanel>
+  </ScrollViewer>
+</UserControl>
+

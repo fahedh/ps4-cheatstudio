@@ -120,6 +120,9 @@
           <TextBlock Text="Thread ID"/><TextBox Text="{Binding ThreadId, UpdateSourceTrigger=PropertyChanged}" Width="200" HorizontalAlignment="Left"/><WrapPanel><Button Content="Read registers" Command="{Binding RegistersCommand}"/><Button Content="Step thread" Command="{Binding StepCommand}"/><Button Content="Resume game" Command="{Binding ResumeCommand}"/></WrapPanel><TextBlock Text="Interrupts update the viewer address and register panel in Code &amp; patches. Step repeatedly for a manual trace. No automatic function equivalence or symbolic execution is claimed." Style="{StaticResource Muted}"/>
         </StackPanel></ScrollViewer></TabItem>
       </TabControl></TabItem>
+      <TabItem Header="AI Player" Tag="&#xE714;" Style="{StaticResource NavigationItem}">
+        <local:AiPlayerPanel/>
+      </TabItem>
       <TabItem Header="Help" Tag="&#xE897;" Style="{StaticResource NavigationItem}">
         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
           <StackPanel MaxWidth="780" HorizontalAlignment="Left" Margin="12">
