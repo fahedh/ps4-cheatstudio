@@ -81,8 +81,8 @@ public sealed class SimulatedGameObserver : IGameObserver
     public Task<GameObservation> ObserveAsync(GameFrame frame, CancellationToken cancellationToken)
         => Task.FromResult(new GameObservation(
             GameMode.Dialogue,
-            "Synthetic Walking Dead-style dialogue; this is NOT a live game image.",
-            ["Help the stranger", "Stay with Clementine", "Remain silent"], frame));
+            "Synthetic The Walking Dead: Season Two dialogue (Clementine); this is NOT a live game image.",
+            ["Ask for help", "Tell the truth", "Remain silent"], frame));
 }
 
 public sealed class SimulatedGameAgent : IGameAgent
